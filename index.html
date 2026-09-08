@@ -277,7 +277,28 @@
 
   .form-actions { margin-top: 26px; display: grid; gap: 12px; justify-items: start; }
   .form-actions .bouton { width: 100%; }
+  .form-actions .bouton[disabled] { opacity: 0.6; cursor: progress; }
   .form-note { font-size: 0.8rem; color: var(--texte-tres-doux); }
+
+  /* Le piège à robots. Hors de l'écran plutôt que display:none : les robots
+     qui remplissent tout ignorent souvent ce qui est masqué, rarement ce qui
+     est simplement déplacé. Personne ne le voit, personne ne le tabule. */
+  .piege {
+    position: absolute; left: -9999px; top: auto;
+    width: 1px; height: 1px; overflow: hidden;
+  }
+
+  .merci {
+    display: none; margin-top: 8px;
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 24px; gap: 12px;
+  }
+  .merci.visible { display: grid; }
+  .merci h2 { font-size: 1.15rem; font-weight: 600; }
+  .merci p { color: var(--texte-doux); font-size: 0.92rem; }
+  .merci .adresse {
+    font-family: ui-monospace, monospace; color: var(--or-texte); word-break: break-all;
+  }
 
   .repli {
     display: none; margin-top: 26px;
@@ -641,21 +662,38 @@
             <textarea id="f-quoi" name="quoi" placeholder="Des vêtements d'enfants, une vieille console, du matériel de sport…"></textarea>
             <span class="aide">Quelques mots suffisent, on n'attend pas un inventaire.</span>
           </div>
+
+          <!-- Le piège à robots : hors de l'écran, sans autocomplétion et hors
+               du parcours au clavier. Un humain ne le remplit jamais. S'il est
+               rempli, le serveur répond « c'est envoyé » et ne garde rien. -->
+          <div class="piege" aria-hidden="true">
+            <label for="f-societe">Société</label>
+            <input id="f-societe" name="societe" type="text" tabindex="-1" autocomplete="off">
+          </div>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="bouton bouton--large">Envoyer ma demande</button>
+          <button type="submit" class="bouton bouton--large" id="btn-envoyer">Envoyer ma demande</button>
           <span class="form-note">
-            Ton message s'ouvre dans ta messagerie, prérempli. Rien n'est enregistré ici.
+            Ta demande part directement chez nous. On te répond sous 24 h.
           </span>
         </div>
       </form>
 
-      <div class="repli" id="repli">
-        <h2>Si ta messagerie ne s'est pas ouverte</h2>
+      <div class="merci" id="merci">
+        <h2>C'est envoyé.</h2>
         <p>
-          Certains téléphones et navigateurs n'ouvrent pas la messagerie tout seuls.
-          Copie le message ci-dessous et envoie-le à cette adresse :
+          On te répond sous 24 h avec ton code d'accès, à l'adresse mail que tu viens
+          de donner. Si rien n'arrive, regarde dans les indésirables, puis écris à
+          <span class="adresse">contact@debarras.app</span>.
+        </p>
+      </div>
+
+      <div class="repli" id="repli">
+        <h2 id="repli-titre">L'envoi n'a pas abouti</h2>
+        <p id="repli-motif">
+          Rien n'est perdu : ton message est prêt ci-dessous.
+          Copie-le et envoie-le à cette adresse :
         </p>
         <p class="adresse">contact@debarras.app</p>
         <pre id="repli-texte"></pre>
@@ -671,6 +709,20 @@
 
   var DESTINATAIRE = 'contact@debarras.app';
 
+  // LE FORMULAIRE ENVOIE, IL N'OUVRE PLUS LA MESSAGERIE (ticket 128b).
+  //
+  // Avant le 8 septembre 2026, ce bouton faisait `location.href = 'mailto:…'`.
+  // Sur un téléphone sans client mail configuré, il ne se passait RIEN, et la
+  // page ne pouvait même pas le savoir : mailto ne déclenche aucun événement.
+  // C'était le premier écran que voit quelqu'un à qui Laurent envoie le lien.
+  //
+  // Il poste maintenant vers notre propre serveur, exposé par Tailscale Funnel.
+  // Pas de Formspree, pas de tiers qui reçoit les adresses et les téléphones.
+  // La page est servie par debarras.app : deux origines, donc du CORS, posé
+  // côté serveur sur cette route et sur elle seule.
+  var API = 'https://home.tail5b927f.ts.net/api/demande-acces';
+  var DELAI_MAX = 15000;   // au-delà, on rend la main plutôt que de laisser « Envoi… »
+
   // ── Routage par ancre. Deux vues dans une page : pas de second dépôt à
   //    maintenir, et le retour arrière du navigateur fonctionne tout seul.
   function router() {
@@ -684,6 +736,10 @@
   var form = document.getElementById('form-acces');
   var repli = document.getElementById('repli');
   var repliTexte = document.getElementById('repli-texte');
+  var repliMotif = document.getElementById('repli-motif');
+  var merci = document.getElementById('merci');
+  var bouton = document.getElementById('btn-envoyer');
+  var LIBELLE = bouton.textContent;
 
   function valeur(nom) {
     var el = form.elements[nom];
@@ -761,21 +817,72 @@
 
     var sujet = 'Débarras, demande d\'accès de ' + prenom + ' ' + nom;
 
-    // Le repli s'affiche AVANT d'ouvrir la messagerie, jamais après : si
-    // mailto n'ouvre rien, aucun événement ne nous le dit. Une page qui
-    // attendrait une erreur qui ne vient jamais laisserait la personne
-    // devant un formulaire qui n'a rien fait.
+    // Le texte de repli est préparé AVANT l'envoi, et il ne dépend pas de sa
+    // réussite : quoi qu'il arrive ensuite, on ne perd jamais ce que la
+    // personne a écrit.
     repliTexte.textContent = 'À : ' + DESTINATAIRE + '\nObjet : ' + sujet + '\n\n' + corps;
+
+    envoyer({
+      prenom: prenom, nom: nom, email: email, telephone: telephone,
+      adresse: adresse, volume: volume, quoi: quoi,
+      societe: valeur('societe')   // le piège : vide chez un humain
+    });
+  });
+
+  // ── Les trois états : pendant, réussi, raté ───────────────────────────────
+  function pendant(oui) {
+    bouton.disabled = oui;
+    bouton.textContent = oui ? 'Envoi…' : LIBELLE;
+  }
+
+  function reussi() {
+    pendant(false);
+    repli.classList.remove('visible');
+    form.style.display = 'none';
+    merci.classList.add('visible');
+    merci.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Un échec ne laisse jamais la personne devant un formulaire muet : le repli
+  // reparaît avec le message prêt à coller et l'adresse en clair.
+  function rate(motif) {
+    pendant(false);
+    if (motif) repliMotif.textContent = motif + ' Rien n\'est perdu : copie le message ci-dessous et envoie-le à cette adresse :';
     repli.classList.add('visible');
-
-    window.location.href = 'mailto:' + DESTINATAIRE +
-      '?subject=' + encodeURIComponent(sujet) +
-      '&body=' + encodeURIComponent(corps);
-
     setTimeout(function () {
       repli.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 600);
-  });
+    }, 100);
+  }
+
+  function envoyer(donnees) {
+    pendant(true);
+    if (!window.fetch) { rate('Ce navigateur ne sait pas envoyer la demande.'); return; }
+
+    // Un délai maximum, sinon un réseau qui ne répond ni oui ni non laisse le
+    // bouton sur « Envoi… » indéfiniment.
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var minuterie = setTimeout(function () { if (ctrl) ctrl.abort(); }, DELAI_MAX);
+
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(donnees),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      clearTimeout(minuterie);
+      if (r.ok) { reussi(); return; }
+      // Le serveur sait dire pourquoi (demande trop longue, trop de demandes) :
+      // on répète SON message plutôt que d'en inventer un.
+      return r.json().then(function (j) {
+        rate((j && j.erreur) ? j.erreur : 'L\'envoi n\'a pas abouti.');
+      }, function () {
+        rate('L\'envoi n\'a pas abouti.');
+      });
+    }, function () {
+      clearTimeout(minuterie);
+      rate('L\'envoi n\'a pas abouti.');
+    });
+  }
 
   document.getElementById('btn-copier').addEventListener('click', function () {
     var btn = this;
