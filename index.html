@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>débarras.app</title>
+<meta name="description" content="Tu photographies l'objet. On écrit l'annonce, on publie sur leboncoin, Vinted et eBay, on répond aux acheteurs. Tu déposes le colis, tu touches l'argent.">
+<meta property="og:title" content="débarras.app">
+<meta property="og:description" content="Tes affaires se vendent pendant que tu fais autre chose.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://debarras.app/">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+
+<style>
+  /* ── LES JETONS SONT CEUX DE L'APPLICATION, repris tels quels de
+        public/app.css : même noir chaud, même doré, mêmes rayons. Quelqu'un
+        qui arrive de la landing puis ouvre l'app doit reconnaître le même
+        objet, pas deux produits différents.
+
+        Thème unique et clair, demandé par Laurent le 6 septembre : l'app est
+        sombre, la landing est sur fond blanc. Toutes les couleurs sont peintes
+        explicitement, donc la page tient sur n'importe quel fond hôte.
+
+        FOND BLANC, NOIR ET DORÉ DE L'APPLICATION.
+        Le doré de l'app (#d9a441) tient parfaitement en REMPLI sur blanc, avec
+        le noir chaud par-dessus : c'est exactement le bouton de l'app. Mais en
+        TEXTE sur blanc il tombe à 1,9:1, illisible. Il a donc un jumeau plus
+        sombre, --or-texte (#8A6414, 4,8:1), réservé aux mots. Deux jetons
+        plutôt qu'un, parce qu'un doré qui va sur un fond noir ne va pas sur un
+        fond blanc, et le prétendre revient à publier du texte que personne ne
+        lit au soleil.
+        Le vert et le rouge sont assombris pour la même raison. ── */
+  :root {
+    --fond:            #FFFFFF;
+    --carte:           #FBFAF7;
+    --carte2:          #F4F2ED;
+    --bord:            #E4DFD4;
+    --or:              #d9a441;   /* remplis, filets, pastilles */
+    --or-texte:        #8A6414;   /* le doré quand il porte des mots */
+    --or-pale:         #c78f2c;   /* survol du bouton */
+    --vert:            #3F7A52;
+    --rouge:           #A8452C;
+    --texte:           #12100e;
+    --texte-doux:      #55504A;
+    --texte-tres-doux: #7A736A;
+    --rayon:           12px;
+    --rayon-sm:        8px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--fond);
+    color: var(--texte);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (max-width: 640px) { body { font-size: 16px; } }
+
+  h1, h2, h3 { margin: 0; }
+  .titrage {
+    font-family: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  p { margin: 0; }
+  a { color: var(--or-texte); }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .enveloppe { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 640px) { .enveloppe { padding: 0 16px; } }
+
+  .etiquette {
+    font-size: 0.7rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--texte-tres-doux);
+  }
+
+  /* ── Barre ─────────────────────────────────────────────────────────── */
+  .barre {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 20px 0 0;
+  }
+  .marque {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 800; font-size: 19px; letter-spacing: -0.03em;
+    color: var(--texte); text-decoration: none;
+  }
+  .marque span { color: var(--or-texte); }
+
+  /* Le bouton est celui de l'app : fond doré, texte NOIR, 700, rayon 12.
+     Attention : dans l'app le texte du bouton valait var(--fond), qui était le
+     noir. Le fond est devenu blanc ; reprendre var(--fond) aurait donné du
+     blanc sur doré, illisible. C'est le piège classique d'un jeton dont on
+     garde le nom en changeant sa valeur. */
+  .bouton {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--or); color: var(--texte);
+    border: 1px solid var(--or); border-radius: var(--rayon);
+    padding: 12px 18px; font-size: 0.9rem; font-weight: 700;
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s ease;
+  }
+  .bouton:hover { background: var(--or-pale); border-color: var(--or-pale); }
+  .bouton--large { padding: 16px 26px; font-size: 1rem; }
+  a:focus-visible { outline: 2px solid var(--or); outline-offset: 3px; }
+
+  /* ── Ouverture ─────────────────────────────────────────────────────── */
+  .ouverture { padding: 64px 0 0; display: grid; gap: 24px; }
+  @media (max-width: 640px) { .ouverture { padding: 40px 0 0; gap: 20px; } }
+  .ouverture h1 { font-size: clamp(36px, 7vw, 74px); max-width: 15ch; }
+  .ouverture h1 em { font-style: normal; color: var(--or-texte); }
+  .accroche { font-size: clamp(17px, 2.1vw, 21px); color: var(--texte-doux); max-width: 54ch; }
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .actions .note { font-size: 0.85rem; color: var(--texte-tres-doux); }
+
+  /* ── Sections ──────────────────────────────────────────────────────── */
+  .section { padding: 72px 0; }
+  .section--haut { padding-top: 64px; }
+  @media (max-width: 640px) { .section { padding: 52px 0; } .section--haut { padding-top: 48px; } }
+  .section > .titre { display: grid; gap: 10px; margin-bottom: 30px; }
+  .section h2 { font-size: clamp(27px, 4vw, 40px); max-width: 20ch; }
+
+  /* ── Les trois promesses : gros titres dorés, pas des cartes ───────── */
+  .promesses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 36px; }
+  @media (max-width: 800px) { .promesses { grid-template-columns: 1fr; gap: 22px; } }
+  .promesse { display: grid; gap: 8px; align-content: start; padding-top: 18px; border-top: 2px solid var(--or); }
+  .promesse h3 { font-size: clamp(21px, 2.7vw, 28px); color: var(--or-texte); }
+  .promesse p { color: var(--texte-doux); font-size: 0.97rem; max-width: 40ch; }
+
+  /* ── Les trois raisons : du texte long, en colonnes lisibles ───────── */
+  .raisons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .raisons { grid-template-columns: 1fr; } }
+  .raison {
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 24px 22px 26px; display: grid; gap: 10px; align-content: start;
+  }
+  .raison-cle { font-size: 0.7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--or-texte); }
+  .raison h3 { font-size: 1.15rem; font-weight: 600; line-height: 1.3; }
+  .raison p { color: var(--texte-doux); font-size: 0.95rem; }
+
+  .etapes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 1000px) { .etapes { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .etapes { grid-template-columns: 1fr; } }
+  .etape {
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 22px 20px 24px; display: grid; gap: 9px; align-content: start;
+  }
+  .etape .rang { font-size: 0.75rem; font-weight: 700; color: var(--or-texte); letter-spacing: .1em; }
+  .etape h3 { font-size: 1.1rem; font-weight: 600; }
+  .etape p { color: var(--texte-doux); font-size: 0.95rem; }
+  .etape .duree { font-size: 0.8rem; color: var(--texte-tres-doux); }
+
+  /* APRES .etape, et pas avant : .etape pose le raccourci `border`, qui
+     reinitialise border-color. A specificite egale, la derniere regle gagne ;
+     declaree plus haut, celle-ci n_aurait rien fait.
+     L'étape à la charge du déposant se voit, parce qu'une promesse « tu ne fais
+     rien » qui cache un colis à déposer se paie au premier objet vendu. */
+  .etape--toi { border-color: rgba(217,164,65,.55); background: #FDFAF2; }
+  .etape--toi .rang::after { content: " · à toi"; color: var(--texte-tres-doux); font-weight: 600; }
+
+  /* ── L'étal ────────────────────────────────────────────────────────── */
+  .etal { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  @media (max-width: 700px) { .etal { grid-template-columns: 1fr; } }
+  .objet {
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 20px; display: grid; gap: 9px; align-content: start;
+  }
+  .objet .haut { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .plateformes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .puce {
+    font-size: 0.7rem; letter-spacing: .03em;
+    background: var(--carte2); border: 1px solid var(--bord);
+    border-radius: 999px; padding: 3px 10px; color: var(--texte-doux);
+  }
+  .pastille {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .pastille::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pastille--vendu { color: var(--vert); }
+  .pastille--vente { color: var(--or-texte); }
+  .objet h3 { font-size: 1rem; font-weight: 600; line-height: 1.4; }
+  .objet .prix { font-size: 0.95rem; color: var(--texte-tres-doux); }
+  .objet .prix b { font-weight: 700; color: var(--texte); font-size: 1.05rem; }
+  .etal-note { margin-top: 16px; font-size: 0.85rem; color: var(--texte-tres-doux); max-width: 62ch; }
+
+  /* ── Ce que tu ne fais plus ────────────────────────────────────────── */
+  .deux { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 44px; align-items: start; }
+  @media (max-width: 760px) { .deux { grid-template-columns: 1fr; gap: 28px; } }
+  .rayes { list-style: none; margin: 0; padding: 0; }
+  .rayes li {
+    padding: 13px 0; border-bottom: 1px solid var(--bord);
+    color: var(--texte-doux); display: flex; gap: 12px; align-items: baseline;
+  }
+  .rayes li:first-child { border-top: 1px solid var(--bord); }
+  .rayes .croix { color: var(--rouge); font-size: 0.9rem; }
+
+  /* ── Le prix ───────────────────────────────────────────────────────── */
+  .prix-bloc {
+    background: var(--carte2); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 32px; display: grid; gap: 12px;
+  }
+  @media (max-width: 640px) { .prix-bloc { padding: 24px 20px; } }
+  .prix-bloc .chiffre {
+    font-family: "Bricolage Grotesque", sans-serif; font-weight: 800;
+    font-size: clamp(46px, 8vw, 70px); line-height: 1; letter-spacing: -0.04em;
+    color: var(--or-texte);
+  }
+  .prix-bloc p { color: var(--texte-doux); max-width: 52ch; }
+
+  /* ── Questions ─────────────────────────────────────────────────────── */
+  .question { border-top: 1px solid var(--bord); padding: 20px 0; display: grid; gap: 6px; }
+  .question:last-child { border-bottom: 1px solid var(--bord); }
+  .question h3 { font-size: 1rem; font-weight: 600; }
+  .question p { color: var(--texte-doux); max-width: 66ch; }
+
+  /* ── Fin ───────────────────────────────────────────────────────────── */
+  .fin { border-top: 1px solid var(--bord); background: var(--carte2); padding: 62px 0 24px; margin-top: 20px; }
+  .fin-contenu { display: grid; gap: 20px; justify-items: start; }
+  .fin h2 { font-size: clamp(27px, 4.4vw, 44px); max-width: 16ch; }
+  .fin p { color: var(--texte-doux); max-width: 50ch; }
+  .pied {
+    margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--bord);
+    display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between;
+    font-size: 0.82rem; color: var(--texte-tres-doux);
+  }
+
+  /* ── Le formulaire ─────────────────────────────────────────────────── */
+  #vue-acces { display: none; }
+  body.acces #vue-landing { display: none; }
+  body.acces #vue-acces { display: block; }
+
+  .form-page { max-width: 620px; margin: 0 auto; padding: 48px 0 80px; }
+  @media (max-width: 640px) { .form-page { padding: 32px 0 60px; } }
+  .form-page .intro { display: grid; gap: 12px; margin-bottom: 32px; }
+  .form-page h1 { font-size: clamp(28px, 5vw, 42px); }
+  .form-page .intro p { color: var(--texte-doux); max-width: 52ch; }
+
+  .retour {
+    display: inline-flex; align-items: center; gap: 7px;
+    color: var(--texte-doux); text-decoration: none; font-size: 0.88rem;
+    margin-bottom: 26px;
+  }
+  .retour:hover { color: var(--or-texte); }
+
+  .champs { display: grid; gap: 18px; }
+  .duo-champs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 480px) { .duo-champs { grid-template-columns: 1fr; gap: 18px; } }
+  .champ { display: grid; gap: 7px; }
+  .champ label { font-size: 0.88rem; font-weight: 600; color: var(--texte); }
+  .champ .aide { font-size: 0.8rem; color: var(--texte-tres-doux); }
+  .champ input, .champ textarea, .champ select {
+    font-family: inherit; font-size: 1rem; color: var(--texte);
+    background: var(--carte2); border: 1px solid var(--bord);
+    border-radius: var(--rayon-sm); padding: 12px; width: 100%; outline: none;
+  }
+  .champ textarea { resize: vertical; min-height: 96px; }
+  .champ input:focus, .champ textarea:focus, .champ select:focus { border-color: var(--or); }
+  .champ select option { background: var(--carte2); }
+  .champ.invalide input, .champ.invalide textarea { border-color: var(--rouge); }
+  .erreur-champ { font-size: 0.8rem; color: var(--rouge); }
+
+  .form-actions { margin-top: 26px; display: grid; gap: 12px; justify-items: start; }
+  .form-actions .bouton { width: 100%; }
+  .form-note { font-size: 0.8rem; color: var(--texte-tres-doux); }
+
+  .repli {
+    display: none; margin-top: 26px;
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 20px; gap: 12px;
+  }
+  .repli.visible { display: grid; }
+  .repli h2 { font-size: 1.05rem; font-weight: 600; }
+  .repli p { color: var(--texte-doux); font-size: 0.9rem; }
+  .repli .adresse {
+    font-family: ui-monospace, monospace; font-size: 0.92rem; color: var(--or-texte);
+    word-break: break-all;
+  }
+  .repli pre {
+    margin: 0; padding: 14px; background: var(--carte2); border: 1px solid var(--bord);
+    border-radius: var(--rayon-sm); color: var(--texte-doux);
+    font-family: ui-monospace, monospace; font-size: 0.82rem; line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow-y: auto;
+  }
+  .btn-copier {
+    background: var(--carte2); color: var(--texte); border: 1px solid var(--bord);
+    border-radius: var(--rayon-sm); padding: 10px 16px; font-size: 0.88rem; font-weight: 600;
+    font-family: inherit; justify-self: start;
+  }
+  .btn-copier:hover { border-color: var(--or-texte); color: var(--or-texte); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<div id="vue-landing">
+<div class="enveloppe">
+  <nav class="barre">
+    <a class="marque" href="#">débarras<span>.app</span></a>
+    <a class="bouton" href="#acces">Demander un accès</a>
+  </nav>
+
+  <header class="ouverture">
+    <span class="etiquette">Bêta privée · sur invitation · envoi postal uniquement</span>
+    <h1 class="titrage">Tes affaires se vendent <em>pendant que tu fais autre chose.</em></h1>
+    <p class="accroche">
+      Tu photographies l'objet. On écrit l'annonce, on fixe le prix, on publie sur
+      leboncoin, Vinted et eBay, et on répond aux acheteurs. Quand c'est vendu, tu
+      déposes le colis en point relais, et tu touches l'argent de la vente.
+    </p>
+    <div class="actions">
+      <a class="bouton bouton--large" href="#acces">Demander un accès</a>
+      <span class="note">Une photo suffit pour commencer.</span>
+    </div>
+  </header>
+
+  <section class="section section--haut">
+    <div class="titre">
+      <span class="etiquette">Pourquoi passer par nous</span>
+      <h2 class="titrage">Trois choses changent quand tu ne vends plus seul.</h2>
+    </div>
+    <div class="promesses">
+      <article class="promesse">
+        <h3 class="titrage">Tu gagnes plus</h3>
+        <p>Le prix n'est pas posé au hasard ni au feeling du dimanche soir, et la
+           négociation ne descend jamais sous le plancher que tu as fixé.</p>
+      </article>
+      <article class="promesse">
+        <h3 class="titrage">Tu vends plus d'objets</h3>
+        <p>Ceux que tu n'aurais jamais pris le temps de mettre en ligne partent aussi,
+           parce que les mettre en ligne ne te coûte plus qu'une photo.</p>
+      </article>
+      <article class="promesse">
+        <h3 class="titrage">Tu vends plus vite</h3>
+        <p>L'annonce part tout de suite, sur plusieurs plateformes à la fois, et
+           l'acheteur qui écrit obtient une réponse sans attendre.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="titre">
+      <span class="etiquette">Pourquoi ça marche</span>
+      <h2 class="titrage">Vendre d'occasion, c'est trois métiers qu'on regroupe en un seul endroit.</h2>
+    </div>
+    <div class="raisons">
+      <article class="raison">
+        <span class="raison-cle">Le nombre d'endroits</span>
+        <h3>Trois plateformes au lieu d'une</h3>
+        <p>
+          leboncoin, Vinted et eBay ne s'adressent pas aux mêmes gens. Un jouet
+          d'enfant part sur leboncoin, un pull sur Vinted, une carte de collection
+          trouve son acheteur à l'autre bout de l'Europe sur eBay. Publier partout à la main est
+          un travail de recopie que personne ne fait deux fois ; ici, c'est la même
+          photo qui donne trois annonces adaptées à chaque plateforme, avec la
+          catégorie et l'état que chacune attend.
+        </p>
+      </article>
+      <article class="raison">
+        <span class="raison-cle">La réactivité</span>
+        <h3>Une réponse tout de suite, pas dimanche</h3>
+        <p>
+          Un acheteur qui demande « toujours disponible ? » et qui attend deux jours
+          est déjà parti ailleurs. Les messages sont suivis en continu, les relances
+          aussi, et l'objet est retiré des autres plateformes dès qu'il est vendu sur
+          l'une d'elles. C'est le moment où la plupart des ventes entre particuliers se
+          perdent, et c'est celui qui demande le moins de talent : juste d'être là.
+        </p>
+      </article>
+      <article class="raison">
+        <span class="raison-cle">Le prix et la négociation</span>
+        <h3>Un prix tenu, objet par objet</h3>
+        <p>
+          Le prix est estimé pour cet objet-là, pas pour sa catégorie, et tu fixes un
+          prix plancher que rien ne franchit, même automatiquement. Une offre trop
+          basse reçoit une contre-proposition plutôt qu'un silence, et un objet qui
+          n'intéresse personne au bout d'un moment te le dit, au lieu de dormir en
+          ligne pendant six mois.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="titre">
+      <span class="etiquette">Le parcours d'un objet</span>
+      <h2 class="titrage">Quatre étapes, dont deux seulement sont les tiennes.</h2>
+    </div>
+    <div class="etapes">
+      <article class="etape etape--toi">
+        <span class="rang">01</span>
+        <h3>Tu prends la photo</h3>
+        <p>Depuis ton téléphone, dans ton salon, sans studio ni fond blanc. On te dit
+           tout de suite si la photo suffit ou s'il en faut une autre.</p>
+        <span class="duree">Une dizaine de secondes par objet</span>
+      </article>
+      <article class="etape">
+        <span class="rang">02</span>
+        <h3>On rédige et on publie</h3>
+        <p>Titre, description, catégorie, état, prix, prix plancher. L'annonce part sur
+           leboncoin, Vinted et eBay selon ce qui se vend le mieux pour cet objet.</p>
+        <span class="duree">Tu n'as rien à faire à cette étape</span>
+      </article>
+      <article class="etape etape--toi">
+        <span class="rang">03</span>
+        <h3>Tu déposes le colis</h3>
+        <p>Tout part par la poste, jamais en main propre. Quand l'objet est vendu,
+           c'est toi qui l'emballes et qui le déposes en point relais. On te dit où,
+           et avant quelle date. Le bon d'envoi est prêt.</p>
+        <span class="duree">Trois jours en général, et on te le rappelle</span>
+      </article>
+      <article class="etape">
+        <span class="rang">04</span>
+        <h3>Tu es payé</h3>
+        <p>On répond aux acheteurs, on tient les négociations au-dessus de ton prix
+           plancher, on suit le colis jusqu'à l'arrivée. Tu récupères l'argent de la
+           vente.</p>
+        <span class="duree">Le délai dépend de l'objet</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="titre">
+      <span class="etiquette">Ce qui est passé par là</span>
+      <h2 class="titrage">De vrais objets, de vrais prix.</h2>
+    </div>
+    <div class="etal">
+      <article class="objet">
+        <div class="haut">
+          <div class="plateformes"><span class="puce">leboncoin</span></div>
+          <span class="pastille pastille--vendu">Vendu</span>
+        </div>
+        <h3>Skateboard Bart Simpson « Vehicle of Destruction », licence officielle, années 1990</h3>
+        <p class="prix mono">Parti à <b>40 €</b> · 5 septembre 2026</p>
+      </article>
+      <article class="objet">
+        <div class="haut">
+          <div class="plateformes"><span class="puce">leboncoin</span></div>
+          <span class="pastille pastille--vendu">Vendu</span>
+        </div>
+        <h3>Flûte traversière argentée avec étui rigide</h3>
+        <p class="prix mono">Partie à <b>90 €</b></p>
+      </article>
+      <article class="objet">
+        <div class="haut">
+          <div class="plateformes"><span class="puce">eBay</span></div>
+          <span class="pastille pastille--vente">En vente</span>
+        </div>
+        <h3>Dracaufeu Charizard 4/102, Set de Base Wizards, gradée PCA</h3>
+        <p class="prix mono">Annoncée <b>414 €</b></p>
+      </article>
+      <article class="objet">
+        <div class="haut">
+          <div class="plateformes"><span class="puce">leboncoin</span><span class="puce">Vinted</span></div>
+          <span class="pastille pastille--vente">En vente</span>
+        </div>
+        <h3>Boîte à déjeuner Monbento motif ginkgo bleue, avec sangle</h3>
+        <p class="prix mono">Annoncée <b>12 €</b></p>
+      </article>
+    </div>
+    <p class="etal-note">
+      Quatre objets pris dans les 130 déjà passés par l'application. Les prix affichés
+      sont ceux réellement obtenus ou réellement demandés, pas des exemples.
+    </p>
+  </section>
+
+  <section class="section">
+    <div class="deux">
+      <div class="titre" style="margin:0">
+        <span class="etiquette">Ce que tu arrêtes de faire</span>
+        <h2 class="titrage">Le travail que personne n'a envie de faire un dimanche soir.</h2>
+      </div>
+      <ul class="rayes">
+        <li><span class="croix">✕</span> Écrire un titre qui ressort dans les résultats</li>
+        <li><span class="croix">✕</span> Chercher combien ça vaut vraiment</li>
+        <li><span class="croix">✕</span> Recommencer l'annonce sur chaque plateforme</li>
+        <li><span class="croix">✕</span> Répondre à « toujours disponible ? » douze fois</li>
+        <li><span class="croix">✕</span> Négocier, et céder trop bas parce qu'on en a assez</li>
+        <li><span class="croix">✕</span> Guetter le délai d'expédition : on te donne la date et on te la rappelle</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="prix-bloc">
+      <span class="etiquette">Ce que ça coûte</span>
+      <div class="chiffre mono">5&nbsp;%</div>
+      <p>
+        Une commission de 5 % sur le prix de vente. Pas d'abonnement, pas de frais de
+        dépôt, pas de frais de retrait. Si l'objet ne se vend pas, tu ne dois rien.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="titre">
+      <span class="etiquette">Questions</span>
+      <h2 class="titrage">Ce qu'on nous demande.</h2>
+    </div>
+    <div>
+      <div class="question">
+        <h3>Est-ce que je peux vendre en main propre ?</h3>
+        <p>Non. <strong>Tout se vend par correspondance</strong>, sur les trois
+           plateformes. Personne ne vient chez toi, tu ne donnes rendez-vous à
+           personne, et ton adresse n'apparaît nulle part : elle ne sert qu'à
+           imprimer le bon d'envoi.</p>
+      </div>
+      <div class="question">
+        <h3>Qui garde mes objets ?</h3>
+        <p>Toi. Ils restent chez toi jusqu'à la vente. On ne vient rien chercher, on ne
+           stocke rien.</p>
+      </div>
+      <div class="question">
+        <h3>Et si je trouve le prix trop bas ?</h3>
+        <p>Tu fixes un prix plancher, et rien ne part en dessous. Une négociation qui
+           passe sous ce prix est refusée, même automatiquement.</p>
+      </div>
+      <div class="question">
+        <h3>C'est publié sous mon nom ou sous le vôtre ?</h3>
+        <p>Sous un compte de dépôt géré par Débarras. Ton nom et tes coordonnées
+           n'apparaissent pas dans l'annonce.</p>
+      </div>
+      <div class="question">
+        <h3>Qui répond aux acheteurs ?</h3>
+        <p>Nous, dans la messagerie de la plateforme. Tu es prévenu de ce qui se passe,
+           tu n'as pas à suivre les fils.</p>
+      </div>
+      <div class="question">
+        <h3>Qu'est-ce qui reste à ma charge ?</h3>
+        <p>Une chose : <strong>emballer et déposer le colis</strong> quand l'objet est
+           vendu. On te prévient dès la vente, on te donne le bon d'envoi, le point
+           relais et la date limite, et on te le rappelle avant l'échéance. Le reste ne
+           te demande rien.</p>
+      </div>
+      <div class="question">
+        <h3>Et si mon objet ne part jamais ?</h3>
+        <p>Il ne te coûte rien. On te dit au bout d'un moment que le prix ou l'objet
+           n'intéresse personne, et tu décides : baisser, donner, ou reprendre.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="fin">
+  <div class="enveloppe">
+    <div class="fin-contenu">
+      <span class="etiquette">Bêta privée</span>
+      <h2 class="titrage">Dis-nous ce que tu as à vendre.</h2>
+      <p>
+        On ouvre à une dizaine de personnes à la fois, pour rester capables de suivre
+        chaque objet. Écris-nous ce que tu as chez toi, on te répond.
+      </p>
+      <a class="bouton bouton--large" href="#acces">Demander un accès</a>
+    </div>
+    <div class="pied">
+      <span class="mono">débarras.app</span>
+      <span>Vend sur leboncoin, Vinted et eBay.</span>
+    </div>
+  </div>
+</footer>
+</div>
+
+<div id="vue-acces">
+  <div class="enveloppe">
+    <nav class="barre">
+      <a class="marque" href="#">débarras<span>.app</span></a>
+    </nav>
+    <div class="form-page">
+      <a class="retour" href="#">← Revenir à la page</a>
+
+      <div class="intro">
+        <span class="etiquette">Demande d'accès</span>
+        <h1 class="titrage">Dis-nous ce que tu as à vendre.</h1>
+        <p>
+          Deux minutes. On ouvre à une dizaine de personnes à la fois pour rester
+          capables de suivre chaque objet, et on répond à tout le monde.
+        </p>
+      </div>
+
+      <form id="form-acces" novalidate>
+        <div class="champs">
+          <div class="duo-champs">
+            <div class="champ" data-champ="prenom">
+              <label for="f-prenom">Prénom</label>
+              <input id="f-prenom" name="prenom" type="text" autocomplete="given-name" required>
+            </div>
+            <div class="champ" data-champ="nom">
+              <label for="f-nom">Nom</label>
+              <input id="f-nom" name="nom" type="text" autocomplete="family-name" required>
+            </div>
+          </div>
+
+          <div class="champ" data-champ="email">
+            <label for="f-email">Adresse mail</label>
+            <input id="f-email" name="email" type="email" autocomplete="email" inputmode="email" required>
+            <span class="aide">C'est là qu'on te répond.</span>
+          </div>
+
+          <div class="champ" data-champ="telephone">
+            <label for="f-telephone">Téléphone</label>
+            <input id="f-telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78" required>
+            <span class="aide">Quand un objet est vendu, tu as trois jours pour déposer le colis. C'est par là qu'on te prévient, et c'est le seul moment où on t'écrit sans que tu aies rien demandé.</span>
+          </div>
+
+          <div class="champ" data-champ="adresse">
+            <label for="f-adresse">Adresse postale</label>
+            <textarea id="f-adresse" name="adresse" rows="3" autocomplete="street-address" placeholder="Numéro et rue&#10;Code postal et ville"></textarea>
+            <span class="aide">Elle sert uniquement à éditer les bons d'envoi. <strong>Elle n'apparaît dans aucune annonce</strong> et n'est jamais donnée aux acheteurs.</span>
+          </div>
+
+          <div class="champ" data-champ="volume">
+            <label for="f-volume">Combien d'objets, à peu près</label>
+            <select id="f-volume" name="volume">
+              <option value="Je ne sais pas encore">Je ne sais pas encore</option>
+              <option value="Moins de 5">Moins de 5</option>
+              <option value="Entre 5 et 20">Entre 5 et 20</option>
+              <option value="Entre 20 et 50">Entre 20 et 50</option>
+              <option value="Plus de 50">Plus de 50</option>
+            </select>
+          </div>
+
+          <div class="champ" data-champ="quoi">
+            <label for="f-quoi">Ce que tu as chez toi</label>
+            <textarea id="f-quoi" name="quoi" placeholder="Des vêtements d'enfants, une vieille console, du matériel de sport…"></textarea>
+            <span class="aide">Quelques mots suffisent, on n'attend pas un inventaire.</span>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="bouton bouton--large">Envoyer ma demande</button>
+          <span class="form-note">
+            Ton message s'ouvre dans ta messagerie, prérempli. Rien n'est enregistré ici.
+          </span>
+        </div>
+      </form>
+
+      <div class="repli" id="repli">
+        <h2>Si ta messagerie ne s'est pas ouverte</h2>
+        <p>
+          Certains téléphones et navigateurs n'ouvrent pas la messagerie tout seuls.
+          Copie le message ci-dessous et envoie-le à cette adresse :
+        </p>
+        <p class="adresse">contact@debarras.app</p>
+        <pre id="repli-texte"></pre>
+        <button type="button" class="btn-copier" id="btn-copier">Copier le message</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var DESTINATAIRE = 'contact@debarras.app';
+
+  // ── Routage par ancre. Deux vues dans une page : pas de second dépôt à
+  //    maintenir, et le retour arrière du navigateur fonctionne tout seul.
+  function router() {
+    var acces = window.location.hash === '#acces';
+    document.body.classList.toggle('acces', acces);
+    if (acces) window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', router);
+  router();
+
+  var form = document.getElementById('form-acces');
+  var repli = document.getElementById('repli');
+  var repliTexte = document.getElementById('repli-texte');
+
+  function valeur(nom) {
+    var el = form.elements[nom];
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function marquer(nom, mauvais, message) {
+    var bloc = form.querySelector('[data-champ="' + nom + '"]');
+    if (!bloc) return;
+    bloc.classList.toggle('invalide', mauvais);
+    var ancienne = bloc.querySelector('.erreur-champ');
+    if (ancienne) ancienne.remove();
+    if (mauvais && message) {
+      var s = document.createElement('span');
+      s.className = 'erreur-champ';
+      s.textContent = message;
+      bloc.appendChild(s);
+    }
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    var prenom    = valeur('prenom');
+    var nom       = valeur('nom');
+    var email     = valeur('email');
+    var telephone = valeur('telephone');
+    var adresse   = valeur('adresse');
+    var volume    = valeur('volume');
+    var quoi      = valeur('quoi');
+
+    // Quatre champs obligatoires, et un seul motif pour chacun : sans eux on ne
+    // sait ni qui tu es, ni comment te joindre le jour ou un colis doit partir.
+    // L'adresse postale n'est PAS bloquante : elle ne sert qu'au bon d'envoi, et
+    // exiger une adresse complete pour une simple demande d'acces ferait fuir la
+    // moitie des gens. On la demande, on ne la reclame pas.
+    var ok = true;
+    if (!prenom) { marquer('prenom', true, 'Il nous faut un prénom.'); ok = false; }
+    else marquer('prenom', false);
+
+    if (!nom) { marquer('nom', true, 'Il nous faut un nom.'); ok = false; }
+    else marquer('nom', false);
+
+    if (!email || email.indexOf('@') < 1 || email.indexOf('.', email.indexOf('@')) < 0) {
+      marquer('email', true, 'Vérifie l\'adresse : c\'est là qu\'on te répond.');
+      ok = false;
+    } else marquer('email', false);
+
+    // On compte les chiffres plutot que d'imposer un format : les gens ecrivent
+    // 06 12 34 56 78, 06.12.34.56.78 ou +33 6 12 34 56 78, et refuser une de ces
+    // formes serait refuser un numero valable.
+    var chiffres = telephone.replace(/[^0-9]/g, '');
+    if (chiffres.length < 9) {
+      marquer('telephone', true, 'Un numéro où te joindre quand un colis doit partir.');
+      ok = false;
+    } else marquer('telephone', false);
+
+    if (!ok) {
+      var premier = form.querySelector('.champ.invalide input');
+      if (premier) premier.focus();
+      return;
+    }
+
+    var corps =
+      'Bonjour,\n\n' +
+      'Je voudrais essayer Débarras.\n\n' +
+      'Prénom : ' + prenom + '\n' +
+      'Nom : ' + nom + '\n' +
+      'Adresse mail : ' + email + '\n' +
+      'Téléphone : ' + telephone + '\n' +
+      'Adresse postale : ' + (adresse ? '\n' + adresse : 'non précisée') + '\n' +
+      'Nombre d\'objets : ' + volume + '\n' +
+      'Ce que j\'ai chez moi : ' + (quoi || 'non précisé') + '\n\n' +
+      'Merci !\n';
+
+    var sujet = 'Débarras, demande d\'accès de ' + prenom + ' ' + nom;
+
+    // Le repli s'affiche AVANT d'ouvrir la messagerie, jamais après : si
+    // mailto n'ouvre rien, aucun événement ne nous le dit. Une page qui
+    // attendrait une erreur qui ne vient jamais laisserait la personne
+    // devant un formulaire qui n'a rien fait.
+    repliTexte.textContent = 'À : ' + DESTINATAIRE + '\nObjet : ' + sujet + '\n\n' + corps;
+    repli.classList.add('visible');
+
+    window.location.href = 'mailto:' + DESTINATAIRE +
+      '?subject=' + encodeURIComponent(sujet) +
+      '&body=' + encodeURIComponent(corps);
+
+    setTimeout(function () {
+      repli.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 600);
+  });
+
+  document.getElementById('btn-copier').addEventListener('click', function () {
+    var btn = this;
+    var texte = repliTexte.textContent;
+    function fini() { btn.textContent = 'Copié'; setTimeout(function () { btn.textContent = 'Copier le message'; }, 2000); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texte).then(fini, secours);
+    } else secours();
+    function secours() {
+      var z = document.createElement('textarea');
+      z.value = texte; z.style.position = 'fixed'; z.style.opacity = '0';
+      document.body.appendChild(z); z.select();
+      try { document.execCommand('copy'); fini(); }
+      catch (err) { btn.textContent = 'Copie impossible, sélectionne le texte'; }
+      document.body.removeChild(z);
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
