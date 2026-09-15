@@ -744,29 +744,26 @@
   // page ne pouvait même pas le savoir : mailto ne déclenche aucun événement.
   // C'était le premier écran que voit quelqu'un à qui Laurent envoie le lien.
   //
-  // Il poste maintenant vers notre propre serveur, exposé par Tailscale Funnel.
+  // Il poste maintenant vers notre propre serveur, exposé par un tunnel.
   // Pas de Formspree, pas de tiers qui reçoit les adresses et les téléphones.
   // La page est servie par debarras.app : deux origines, donc du CORS, posé
   // côté serveur sur cette route et sur elle seule.
   //
-  // CE NOM EST PUBLIC, ET IL NE L'EST PAS POUR TOUT LE MONDE PAREIL. Mesuré le
-  // 15 septembre 2026 à 13h38, ticket 649 : un résolveur public (1.1.1.1, comme
-  // 8.8.8.8) rend 176.58.90.46/.63/.145, l'entrée publique de Funnel ; par cette
-  // adresse-là, le préflight OPTIONS rend 204 avec
-  // `access-control-allow-origin: https://debarras.app`, et le POST rend 200.
-  // Pour un visiteur ordinaire, ce fetch aboutit.
+  // NE CONCLUS JAMAIS D'UN ESSAI FAIT CHEZ NOUS QUE LA PAGE EST CASSÉE. Pour un
+  // visiteur ordinaire, ce fetch aboutit : mesuré le 15 septembre 2026 à 13h38,
+  // préflight 204 puis POST 200. Depuis nos propres machines il échoue, et pour
+  // une raison de résolution de nom qui n'a rien à voir avec le formulaire :
+  // refais l'essai depuis un réseau extérieur avant de toucher à quoi que ce
+  // soit. Le détail et les adresses sont dans le ticket 658, hors de cette page.
   //
-  // LE PIÈGE EST À L'ENVERS DE CE QU'IL SEMBLE : sur une machine membre du
-  // tailnet, MagicDNS rend 100.122.71.110 — une adresse privée — et Chrome
-  // affiche « debarras.app souhaite accéder à d'autres appareils sur votre
-  // réseau local » avant de bloquer. Les seules personnes à qui ce formulaire
-  // ne répond pas sont donc nous, et ce sont les seules à le tester. Ne conclus
-  // JAMAIS d'un essai fait ici que la page est cassée : refais-le depuis un
-  // réseau hors tailnet, ou en curl avec `--resolve <nom>:443:176.58.90.46`.
+  // Ce commentaire portait jusqu'ici l'infrastructure de HQ en clair — adresses
+  // d'entrée publiques, adresse privée, commande pour les retrouver — sur une
+  // page que tout le monde lit. Retiré le 15 septembre 2026, ticket 673. Ne l'y
+  // remets pas : ce qui décrit nos machines se range dans un ticket.
   //
   // Ce qui reste à réparer n'est pas ici : un nom public à nous, qui ne soit pas
-  // celui de la machine personnelle de Laurent (Cloudflare Tunnel ou équivalent).
-  // Tant qu'il n'existe pas, cette ligne reste la seule voie qui marche.
+  // celui de la machine personnelle de Laurent. Tant qu'il n'existe pas, la
+  // ligne ci-dessous reste la seule voie qui marche.
   var API = 'https://home.tail5b927f.ts.net/api/demande-acces';
   var DELAI_MAX = 15000;   // au-delà, on rend la main plutôt que de laisser « Envoi… »
 
