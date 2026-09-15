@@ -325,6 +325,22 @@
   }
   .btn-copier:hover { border-color: var(--or-texte); color: var(--or-texte); }
 
+  /* Sans JavaScript, le formulaire n'envoie rien : il n'a pas d'action HTML et
+     il ne peut pas en avoir une (la route est sur une autre origine). Ce bloc
+     ne s'affiche que dans ce cas-là, et il donne l'adresse en clair plutôt que
+     de laisser quelqu'un remplir sept champs pour rien. */
+  .sans-js {
+    display: grid; margin-bottom: 26px; gap: 10px;
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 20px;
+  }
+  .sans-js h2 { font-size: 1.05rem; font-weight: 600; }
+  .sans-js p { color: var(--texte-doux); font-size: 0.9rem; }
+  .sans-js .adresse {
+    font-family: ui-monospace, monospace; font-size: 0.92rem; color: var(--or-texte);
+    word-break: break-all;
+  }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -615,6 +631,18 @@
         </p>
       </div>
 
+      <noscript>
+        <div class="sans-js">
+          <h2>Ce formulaire a besoin de JavaScript</h2>
+          <p>
+            Il est désactivé dans ce navigateur, donc le bouton ci-dessous n'enverra
+            rien. Écris-nous directement, avec ton prénom, ton nom, ton téléphone et
+            ce que tu as chez toi :
+          </p>
+          <p class="adresse">contact@debarras.app</p>
+        </div>
+      </noscript>
+
       <form id="form-acces" novalidate>
         <div class="champs">
           <div class="duo-champs">
@@ -720,6 +748,25 @@
   // Pas de Formspree, pas de tiers qui reçoit les adresses et les téléphones.
   // La page est servie par debarras.app : deux origines, donc du CORS, posé
   // côté serveur sur cette route et sur elle seule.
+  //
+  // CE NOM EST PUBLIC, ET IL NE L'EST PAS POUR TOUT LE MONDE PAREIL. Mesuré le
+  // 15 septembre 2026 à 13h38, ticket 649 : un résolveur public (1.1.1.1, comme
+  // 8.8.8.8) rend 176.58.90.46/.63/.145, l'entrée publique de Funnel ; par cette
+  // adresse-là, le préflight OPTIONS rend 204 avec
+  // `access-control-allow-origin: https://debarras.app`, et le POST rend 200.
+  // Pour un visiteur ordinaire, ce fetch aboutit.
+  //
+  // LE PIÈGE EST À L'ENVERS DE CE QU'IL SEMBLE : sur une machine membre du
+  // tailnet, MagicDNS rend 100.122.71.110 — une adresse privée — et Chrome
+  // affiche « debarras.app souhaite accéder à d'autres appareils sur votre
+  // réseau local » avant de bloquer. Les seules personnes à qui ce formulaire
+  // ne répond pas sont donc nous, et ce sont les seules à le tester. Ne conclus
+  // JAMAIS d'un essai fait ici que la page est cassée : refais-le depuis un
+  // réseau hors tailnet, ou en curl avec `--resolve <nom>:443:176.58.90.46`.
+  //
+  // Ce qui reste à réparer n'est pas ici : un nom public à nous, qui ne soit pas
+  // celui de la machine personnelle de Laurent (Cloudflare Tunnel ou équivalent).
+  // Tant qu'il n'existe pas, cette ligne reste la seule voie qui marche.
   var API = 'https://home.tail5b927f.ts.net/api/demande-acces';
   var DELAI_MAX = 15000;   // au-delà, on rend la main plutôt que de laisser « Envoi… »
 
