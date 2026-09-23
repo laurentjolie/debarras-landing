@@ -691,12 +691,19 @@
             <span class="aide">Quelques mots suffisent, on n'attend pas un inventaire.</span>
           </div>
 
-          <!-- Le piège à robots : hors de l'écran, sans autocomplétion et hors
-               du parcours au clavier. Un humain ne le remplit jamais. S'il est
-               rempli, le serveur répond « c'est envoyé » et ne garde rien. -->
+          <!-- Le piège à robots : hors de l'écran, hors du parcours au clavier,
+               et SANS LIBELLÉ LISIBLE. Il s'appelait « societe » avec un
+               <label>Société</label> jusqu'au 23 septembre 2026 : les
+               gestionnaires de mots de passe et l'autoremplissage des
+               navigateurs le remplissaient malgré autocomplete="off", et la
+               demande de Laurent est partie deux fois dans le vide. Le nom ne
+               ressemble donc plus à aucun champ connu, il n'a plus de libellé à
+               reconnaître, et autocomplete="new-password" écarte le reste.
+               Rempli, le serveur répond « c'est envoyé » comme à un humain mais
+               garde la demande, marquée « à vérifier ». -->
           <div class="piege" aria-hidden="true">
-            <label for="f-societe">Société</label>
-            <input id="f-societe" name="societe" type="text" tabindex="-1" autocomplete="off">
+            <input id="f-champ-b7" name="champ_b7" type="text" tabindex="-1"
+              autocomplete="new-password">
           </div>
         </div>
 
@@ -791,6 +798,11 @@
   var bouton = document.getElementById('btn-envoyer');
   var LIBELLE = bouton.textContent;
 
+  // L'heure à laquelle la page a été ouverte, pour la deuxième condition du
+  // piège (voir l'envoi plus bas). Elle ne sert qu'à ça et ne part nulle part
+  // d'autre que dans `duree_ms`.
+  var OUVERT_A = Date.now();
+
   function valeur(nom) {
     var el = form.elements[nom];
     return el ? String(el.value || '').trim() : '';
@@ -875,7 +887,12 @@
     envoyer({
       prenom: prenom, nom: nom, email: email, telephone: telephone,
       adresse: adresse, volume: volume, quoi: quoi,
-      societe: valeur('societe')   // le piège : vide chez un humain
+      champ_b7: valeur('champ_b7'),      // le piège : vide chez un humain
+      // La deuxième condition, indépendante du piège : personne ne tape sept
+      // champs en moins de trois secondes. Comptée depuis l'ouverture de la
+      // page, elle n'accuse jamais seule — le serveur garde la demande et la
+      // marque « à vérifier » plutôt que de la jeter.
+      duree_ms: Date.now() - OUVERT_A
     });
   });
 
