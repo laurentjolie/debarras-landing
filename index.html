@@ -803,6 +803,19 @@
   // d'autre que dans `duree_ms`.
   var OUVERT_A = Date.now();
 
+  // LE CANAL D'ORIGINE (?c=linkedin, ?c=parrainage, ?c=tract...), lu une seule
+  // fois à l'ouverture et porté jusqu'à l'envoi. Un lien sans ce paramètre
+  // continue de marcher : le serveur retient alors « inconnu » lui-même, cette
+  // page ne devine jamais une valeur. Rien d'autre n'en est fait ici — pas de
+  // traqueur, pas d'identifiant par personne, juste ce mot recopié tel quel.
+  function canalDepuisUrl() {
+    try {
+      var m = window.location.search.match(/[?&]c=([^&]*)/);
+      return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+    } catch (e) { return ''; }
+  }
+  var CANAL = canalDepuisUrl();
+
   function valeur(nom) {
     var el = form.elements[nom];
     return el ? String(el.value || '').trim() : '';
@@ -892,7 +905,8 @@
       // champs en moins de trois secondes. Comptée depuis l'ouverture de la
       // page, elle n'accuse jamais seule — le serveur garde la demande et la
       // marque « à vérifier » plutôt que de la jeter.
-      duree_ms: Date.now() - OUVERT_A
+      duree_ms: Date.now() - OUVERT_A,
+      canal: CANAL
     });
   });
 
