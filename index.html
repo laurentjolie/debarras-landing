@@ -691,6 +691,12 @@
             <span class="aide">Quelques mots suffisent, on n'attend pas un inventaire.</span>
           </div>
 
+          <div class="champ" data-champ="provenance">
+            <label for="f-provenance">Où as-tu entendu parler de nous</label>
+            <input id="f-provenance" name="provenance" type="text" maxlength="200" placeholder="Un ami, LinkedIn, un vide-dressing…">
+            <span class="aide">Pas obligatoire, ça nous aide à savoir ce qui marche.</span>
+          </div>
+
           <!-- Le piège à robots : hors de l'écran, hors du parcours au clavier,
                et SANS LIBELLÉ LISIBLE. Il s'appelait « societe » avec un
                <label>Société</label> jusqu'au 23 septembre 2026 : les
@@ -845,6 +851,9 @@
     var adresse   = valeur('adresse');
     var volume    = valeur('volume');
     var quoi      = valeur('quoi');
+    // Réponse libre de la personne, distincte de CANAL (?c=…) : celui-ci est
+    // posé par le lien qu'on lui a envoyé, celle-là par ce qu'elle en dit.
+    var provenance = valeur('provenance');
 
     // Quatre champs obligatoires, et un seul motif pour chacun : sans eux on ne
     // sait ni qui tu es, ni comment te joindre le jour ou un colis doit partir.
@@ -887,7 +896,8 @@
       'Téléphone : ' + telephone + '\n' +
       'Adresse postale : ' + (adresse ? '\n' + adresse : 'non précisée') + '\n' +
       'Nombre d\'objets : ' + volume + '\n' +
-      'Ce que j\'ai chez moi : ' + (quoi || 'non précisé') + '\n\n' +
+      'Ce que j\'ai chez moi : ' + (quoi || 'non précisé') + '\n' +
+      'Où j\'en ai entendu parler : ' + (provenance || 'non précisé') + '\n\n' +
       'Merci !\n';
 
     var sujet = 'Débarras, demande d\'accès de ' + prenom + ' ' + nom;
@@ -899,7 +909,7 @@
 
     envoyer({
       prenom: prenom, nom: nom, email: email, telephone: telephone,
-      adresse: adresse, volume: volume, quoi: quoi,
+      adresse: adresse, volume: volume, quoi: quoi, provenance: provenance,
       champ_b7: valeur('champ_b7'),      // le piège : vide chez un humain
       // La deuxième condition, indépendante du piège : personne ne tape sept
       // champs en moins de trois secondes. Comptée depuis l'ouverture de la
