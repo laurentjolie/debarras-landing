@@ -996,6 +996,7 @@
         return r.json().then(function (j) {
           if (!j || j.ok !== true) { rate('Réponse illisible, réessaie ou écris-nous directement.'); return; }
           if (j.etat === 'a_verifier') { enControle(j.message); return; }
+          if (j.etat !== undefined) { rate('Réponse illisible, réessaie ou écris-nous directement.'); return; }
           reussi();
         }, function () {
           rate('Réponse illisible, réessaie ou écris-nous directement.');

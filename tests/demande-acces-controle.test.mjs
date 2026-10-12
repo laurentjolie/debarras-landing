@@ -188,3 +188,15 @@ test('réponse 200 au corps illisible (JSON invalide) : erreur visible, jamais u
   assert.equal(c.visible('controle'), false);
   assert.equal(c.visible('repli'), true);
 });
+
+for (const etat of ['refusee', 'inconnu', 42]) {
+  test('réponse 200, ok:true, état hors contrat (' + JSON.stringify(etat) + ') : erreur visible, jamais un faux succès', async () => {
+    const c = construireContexte();
+    c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true, etat }) }));
+    await c.soumettre(DONNEES_VALIDES);
+
+    assert.equal(c.visible('merci'), false, 'état hors contrat accepté comme succès normal');
+    assert.equal(c.visible('controle'), false);
+    assert.equal(c.visible('repli'), true);
+  });
+}
