@@ -730,6 +730,16 @@
         </p>
       </div>
 
+      <!-- Demande retenue pour contrôle (ticket rang 44.21, 12/10/2026) : ni délai,
+           ni code annoncés, puisque personne ne les a encore décidés. -->
+      <div class="merci" id="controle">
+        <h2 id="controle-titre">On vérifie ta demande.</h2>
+        <p>
+          Rien d'autre à faire ici pour l'instant. Si tu n'as pas de nouvelles,
+          écris-nous à <span class="adresse">contact@debarras.app</span>.
+        </p>
+      </div>
+
       <div class="repli" id="repli">
         <h2 id="repli-titre">L'envoi n'a pas abouti</h2>
         <p id="repli-motif">
@@ -801,6 +811,8 @@
   var repliTexte = document.getElementById('repli-texte');
   var repliMotif = document.getElementById('repli-motif');
   var merci = document.getElementById('merci');
+  var controle = document.getElementById('controle');
+  var controleTitre = document.getElementById('controle-titre');
   var bouton = document.getElementById('btn-envoyer');
   var LIBELLE = bouton.textContent;
 
@@ -929,15 +941,31 @@
   function reussi() {
     pendant(false);
     repli.classList.remove('visible');
+    controle.classList.remove('visible');
     form.style.display = 'none';
     merci.classList.add('visible');
     merci.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Demande retenue pour contrôle (etat: "a_verifier") : aucun délai, aucun code
+  // promis, puisque personne n'a encore décidé si elle est valide. Le titre reprend
+  // le message du serveur quand il y en a un lisible, sinon le texte fixe du HTML.
+  function enControle(message) {
+    pendant(false);
+    repli.classList.remove('visible');
+    merci.classList.remove('visible');
+    form.style.display = 'none';
+    if (message) controleTitre.textContent = message;
+    controle.classList.add('visible');
+    controle.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // Un échec ne laisse jamais la personne devant un formulaire muet : le repli
   // reparaît avec le message prêt à coller et l'adresse en clair.
   function rate(motif) {
     pendant(false);
+    merci.classList.remove('visible');
+    controle.classList.remove('visible');
     if (motif) repliMotif.textContent = motif + ' Rien n\'est perdu : copie le message ci-dessous et envoie-le à cette adresse :';
     repli.classList.add('visible');
     setTimeout(function () {
@@ -961,7 +989,18 @@
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (r) {
       clearTimeout(minuterie);
-      if (r.ok) { reussi(); return; }
+      if (r.ok) {
+        // Un 200 n'est plus forcément le succès normal : on lit le corps avant
+        // de décider quel écran montrer. Un corps illisible ou incohérent (pas
+        // `ok: true`) est une erreur visible, jamais un faux succès.
+        return r.json().then(function (j) {
+          if (!j || j.ok !== true) { rate('Réponse illisible, réessaie ou écris-nous directement.'); return; }
+          if (j.etat === 'a_verifier') { enControle(j.message); return; }
+          reussi();
+        }, function () {
+          rate('Réponse illisible, réessaie ou écris-nous directement.');
+        });
+      }
       // Le serveur sait dire pourquoi (demande trop longue, trop de demandes) :
       // on répète SON message plutôt que d'en inventer un.
       return r.json().then(function (j) {
