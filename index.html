@@ -794,6 +794,9 @@
   // racine du dépôt. Ce dépôt est public : n'écris ici ni adresse, ni port,
   // ni chemin de nos machines.
   var API = 'https://app.debarras.app/api/demande-acces';
+  // Le compteur de visites par code (?d=...), meme origine, meme raison de
+  // deplacement que API ci-dessus : voir HEBERGEMENT.md.
+  var API_VISITES = 'https://app.debarras.app/api/visite-landing';
   var DELAI_MAX = 15000;   // au-delà, on rend la main plutôt que de laisser « Envoi… »
 
   // ── Routage par ancre. Deux vues dans une page : pas de second dépôt à
@@ -833,6 +836,29 @@
     } catch (e) { return ''; }
   }
   var CANAL = canalDepuisUrl();
+
+  // LE CODE DE GROUPE (?d=issy1, ?d=...), plus fin que CANAL : quel groupe
+  // Facebook precis (ou toute autre source marquee d'un lien) amene des
+  // visiteurs. Meme lecture, meme defaut cote serveur quand il manque. Ce
+  // qu'il ajoute : un ping silencieux a l'ouverture de la page, UNIQUEMENT
+  // quand ce parametre est present (sinon rien n'est a attribuer, et rien
+  // n'est envoye) — aucun cookie, aucune IP gardee (voir le serveur), aucun
+  // bandeau, aucun traqueur tiers. Un echec de ce ping est ignore en silence :
+  // il ne doit jamais se voir ni empecher la suite de la page.
+  function codeDepuisUrl() {
+    try {
+      var m = window.location.search.match(/[?&]d=([^&]*)/);
+      return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+    } catch (e) { return ''; }
+  }
+  var CODE = codeDepuisUrl();
+  if (CODE && window.fetch) {
+    fetch(API_VISITES, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: CODE })
+    }).catch(function () {});
+  }
 
   function valeur(nom) {
     var el = form.elements[nom];
@@ -928,7 +954,8 @@
       // page, elle n'accuse jamais seule — le serveur garde la demande et la
       // marque « à vérifier » plutôt que de la jeter.
       duree_ms: Date.now() - OUVERT_A,
-      canal: CANAL
+      canal: CANAL,
+      code: CODE
     });
   });
 

@@ -51,7 +51,7 @@ function creerElement(id) {
 // script réel : getElementById, classList, querySelector, scrollIntoView,
 // addEventListener, form.elements). Pas un navigateur, juste assez pour que
 // le vrai script tourne sans toucher le réseau.
-function construireContexte() {
+function construireContexte({ search = '' } = {}) {
   const ids = ['repli', 'repli-texte', 'repli-motif', 'merci', 'controle', 'controle-titre', 'btn-envoyer', 'btn-copier'];
   const elements = new Map();
   for (const id of ids) elements.set(id, creerElement(id));
@@ -75,7 +75,7 @@ function construireContexte() {
     getElementById(id) { return elements.get(id) || null; },
     createElement() { return creerElement('tmp'); },
   };
-  const location = { hash: '', search: '' };
+  const location = { hash: '', search };
   const window_ = {
     location,
     addEventListener() {},
@@ -200,3 +200,52 @@ for (const etat of ['refusee', 'inconnu', 42]) {
     assert.equal(c.visible('repli'), true);
   });
 }
+
+// ── Ticket 8977 : le code de groupe (?d=...), sans cookie ni bandeau ───────
+
+test('un lien avec ?d=issy1 déclenche, dès l\'ouverture, un ping silencieux vers le compteur de visites', async () => {
+  const c = construireContexte({ search: '?d=issy1' });
+  // Le ping part à la construction du script (ouverture de la page), avant
+  // toute soumission du formulaire.
+  assert.equal(c.fetchAppels.length, 1);
+  assert.equal(c.fetchAppels[0].url, 'https://app.debarras.app/api/visite-landing');
+  assert.deepEqual(JSON.parse(c.fetchAppels[0].opts.body), { code: 'issy1' });
+});
+
+test('un lien sans ?d= ne déclenche aucun ping : rien à attribuer, rien n\'est envoyé', async () => {
+  const c = construireContexte({ search: '' });
+  assert.equal(c.fetchAppels.length, 0);
+});
+
+test('le code ?d=... est recopié dans la demande d\'accès à l\'envoi du formulaire', async () => {
+  const c = construireContexte({ search: '?d=issy1' });
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  await c.soumettre({ ...DONNEES_VALIDES, champ_b7: '' });
+
+  // Deux fetch : le ping de visite à l'ouverture, puis l'envoi du formulaire.
+  assert.equal(c.fetchAppels.length, 2);
+  const appelFormulaire = c.fetchAppels[1];
+  assert.equal(appelFormulaire.url, 'https://app.debarras.app/api/demande-acces');
+  const corpsEnvoye = JSON.parse(appelFormulaire.opts.body);
+  assert.equal(corpsEnvoye.code, 'issy1');
+});
+
+test('sans ?d=..., la demande d\'accès porte un code vide, jamais une valeur devinée', async () => {
+  const c = construireContexte({ search: '' });
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  await c.soumettre({ ...DONNEES_VALIDES, champ_b7: '' });
+
+  assert.equal(c.fetchAppels.length, 1, 'aucun ping sans code, un seul fetch, celui du formulaire');
+  const corpsEnvoye = JSON.parse(c.fetchAppels[0].opts.body);
+  assert.equal(corpsEnvoye.code, '');
+});
+
+test('un échec du ping de visite est ignoré en silence : rien de visible, la page continue', async () => {
+  const c = construireContexte({ search: '?d=issy1' });
+  c.definirReponse(async () => { throw new Error('réseau coupé'); });
+  // La construction ne doit pas jeter, même si le ping échoue.
+  await new Promise((r) => setImmediate(r));
+  assert.equal(c.visible('repli'), false);
+  assert.equal(c.visible('merci'), false);
+  assert.equal(c.visible('controle'), false);
+});
