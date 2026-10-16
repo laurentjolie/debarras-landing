@@ -636,8 +636,8 @@
           <h2>Ce formulaire a besoin de JavaScript</h2>
           <p>
             Il est désactivé dans ce navigateur, donc le bouton ci-dessous n'enverra
-            rien. Écris-nous directement, avec ton prénom, ton nom, ton téléphone et
-            ce que tu as chez toi :
+            rien. Écris-nous directement, avec ton adresse mail et ce que tu as
+            chez toi :
           </p>
           <p class="adresse">contact@debarras.app</p>
         </div>
@@ -647,12 +647,12 @@
         <div class="champs">
           <div class="duo-champs">
             <div class="champ" data-champ="prenom">
-              <label for="f-prenom">Prénom</label>
-              <input id="f-prenom" name="prenom" type="text" autocomplete="given-name" required>
+              <label for="f-prenom">Prénom <span class="aide">(facultatif)</span></label>
+              <input id="f-prenom" name="prenom" type="text" autocomplete="given-name">
             </div>
             <div class="champ" data-champ="nom">
-              <label for="f-nom">Nom</label>
-              <input id="f-nom" name="nom" type="text" autocomplete="family-name" required>
+              <label for="f-nom">Nom <span class="aide">(facultatif)</span></label>
+              <input id="f-nom" name="nom" type="text" autocomplete="family-name">
             </div>
           </div>
 
@@ -663,8 +663,8 @@
           </div>
 
           <div class="champ" data-champ="telephone">
-            <label for="f-telephone">Téléphone</label>
-            <input id="f-telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78" required>
+            <label for="f-telephone">Téléphone <span class="aide">(facultatif)</span></label>
+            <input id="f-telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78">
             <span class="aide">Quand un objet est vendu, tu as trois jours pour déposer le colis. C'est par là qu'on te prévient, et c'est le seul moment où on t'écrit sans que tu aies rien demandé.</span>
           </div>
 
@@ -893,31 +893,20 @@
     // posé par le lien qu'on lui a envoyé, celle-là par ce qu'elle en dit.
     var provenance = valeur('provenance');
 
-    // Quatre champs obligatoires, et un seul motif pour chacun : sans eux on ne
-    // sait ni qui tu es, ni comment te joindre le jour ou un colis doit partir.
-    // L'adresse postale n'est PAS bloquante : elle ne sert qu'au bon d'envoi, et
-    // exiger une adresse complete pour une simple demande d'acces ferait fuir la
-    // moitie des gens. On la demande, on ne la reclame pas.
+    // Un seul champ obligatoire : l'adresse mail, jugée comme le fait le serveur
+    // (ticket 15.1, decision 68 : adresse valide, rien d'autre). Prénom, nom,
+    // téléphone et adresse postale se demandent sans se réclamer, et un
+    // téléphone fourni n'est plus jugé.
     var ok = true;
-    if (!prenom) { marquer('prenom', true, 'Il nous faut un prénom.'); ok = false; }
-    else marquer('prenom', false);
+    marquer('prenom', false);
+    marquer('nom', false);
+    marquer('telephone', false);
 
-    if (!nom) { marquer('nom', true, 'Il nous faut un nom.'); ok = false; }
-    else marquer('nom', false);
-
-    if (!email || email.indexOf('@') < 1 || email.indexOf('.', email.indexOf('@')) < 0) {
+    // Même expression que EMAIL_RE de lib/demande-acces.mjs côté application.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       marquer('email', true, 'Vérifie l\'adresse : c\'est là qu\'on te répond.');
       ok = false;
     } else marquer('email', false);
-
-    // On compte les chiffres plutot que d'imposer un format : les gens ecrivent
-    // 06 12 34 56 78, 06.12.34.56.78 ou +33 6 12 34 56 78, et refuser une de ces
-    // formes serait refuser un numero valable.
-    var chiffres = telephone.replace(/[^0-9]/g, '');
-    if (chiffres.length < 9) {
-      marquer('telephone', true, 'Un numéro où te joindre quand un colis doit partir.');
-      ok = false;
-    } else marquer('telephone', false);
 
     if (!ok) {
       var premier = form.querySelector('.champ.invalide input');
@@ -928,17 +917,17 @@
     var corps =
       'Bonjour,\n\n' +
       'Je voudrais essayer Débarras.\n\n' +
-      'Prénom : ' + prenom + '\n' +
-      'Nom : ' + nom + '\n' +
+      'Prénom : ' + (prenom || 'non précisé') + '\n' +
+      'Nom : ' + (nom || 'non précisé') + '\n' +
       'Adresse mail : ' + email + '\n' +
-      'Téléphone : ' + telephone + '\n' +
+      'Téléphone : ' + (telephone || 'non précisé') + '\n' +
       'Adresse postale : ' + (adresse ? '\n' + adresse : 'non précisée') + '\n' +
       'Nombre d\'objets : ' + volume + '\n' +
       'Ce que j\'ai chez moi : ' + (quoi || 'non précisé') + '\n' +
       'Où j\'en ai entendu parler : ' + (provenance || 'non précisé') + '\n\n' +
       'Merci !\n';
 
-    var sujet = 'Débarras, demande d\'accès de ' + prenom + ' ' + nom;
+    var sujet = 'Débarras, demande d\'accès de ' + (((prenom + ' ' + nom).trim()) || email);
 
     // Le texte de repli est préparé AVANT l'envoi, et il ne dépend pas de sa
     // réussite : quoi qu'il arrive ensuite, on ne perd jamais ce que la

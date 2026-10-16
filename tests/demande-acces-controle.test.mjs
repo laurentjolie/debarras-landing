@@ -249,3 +249,39 @@ test('un échec du ping de visite est ignoré en silence : rien de visible, la p
   assert.equal(c.visible('merci'), false);
   assert.equal(c.visible('controle'), false);
 });
+
+// Ticket 9660 (suite de 9526) : le formulaire suit le serveur (ticket 15.1),
+// seul l'e-mail est obligatoire. Aucun compte réel, fetch injecté.
+test('seul un e-mail valide suffit : la demande part, sans prénom, nom ni téléphone', async () => {
+  const c = construireContexte();
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  await c.soumettre({ prenom: '', nom: '', email: 'jo@exemple.fr', telephone: '', adresse: '', volume: '', quoi: '', provenance: '', champ_b7: '' });
+  assert.equal(c.fetchAppels.length, 1);
+  const corps = JSON.parse(c.fetchAppels[0].opts.body);
+  assert.equal(corps.email, 'jo@exemple.fr');
+  assert.equal(corps.prenom, '');
+  assert.equal(c.visible('merci'), true);
+});
+
+test('un téléphone court n\'est plus refusé côté page', async () => {
+  const c = construireContexte();
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  await c.soumettre({ ...DONNEES_VALIDES, telephone: '12', champ_b7: '' });
+  assert.equal(c.fetchAppels.length, 1);
+});
+
+for (const email of ['', 'pas-une-adresse', 'a@b', '@x.fr', 'a b@c.fr']) {
+  test('e-mail ' + JSON.stringify(email) + ' : refusé, rien n\'est envoyé', async () => {
+    const c = construireContexte();
+    c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+    await c.soumettre({ ...DONNEES_VALIDES, email, champ_b7: '' });
+    assert.equal(c.fetchAppels.length, 0);
+    assert.equal(c.visible('merci'), false);
+  });
+}
+
+test('aucun champ autre que l\'e-mail n\'est required dans le HTML', () => {
+  const requis = [...HTML.matchAll(/<(?:input|select|textarea)\b[^>]*\brequired\b[^>]*>/g)].map(m => m[0]);
+  assert.equal(requis.length, 1, requis.join('\n'));
+  assert.match(requis[0], /name="email"/);
+});
