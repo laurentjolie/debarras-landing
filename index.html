@@ -94,6 +94,12 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px; padding: 20px 0 0;
   }
+  .nav-droite { display: flex; align-items: center; gap: 18px; }
+  .lien-nav { color: var(--texte); font-weight: 600; font-size: .92rem; text-decoration: none; }
+  .lien-nav:hover { color: var(--or-texte); }
+  .pied a { color: inherit; }
+  @media (max-width: 480px) { .barre { gap: 8px; } .nav-droite { gap: 10px; } .barre .bouton { padding: 9px 10px; font-size: .8rem; } .lien-nav { font-size: .8rem; } }
+  @media (max-width: 350px) { .lien-nav { display: none; } }
   .marque {
     font-family: "Bricolage Grotesque", sans-serif;
     font-weight: 800; font-size: 19px; letter-spacing: -0.03em;
@@ -350,11 +356,14 @@
 <div class="enveloppe">
   <nav class="barre">
     <a class="marque" href="#">débarras<span>.app</span></a>
-    <a class="bouton" href="#acces">Demander un accès</a>
+    <span class="nav-droite">
+      <a class="lien-nav" href="equipe.html">L'équipe</a>
+      <a class="bouton" href="#acces">Demander un accès</a>
+    </span>
   </nav>
 
   <header class="ouverture">
-    <span class="etiquette">Bêta privée · sur invitation · envoi postal uniquement</span>
+    <span class="etiquette">Envoi postal uniquement</span>
     <h1 class="titrage">Tes affaires se vendent <em>pendant que tu fais autre chose.</em></h1>
     <p class="accroche">
       Tu photographies l'objet. On écrit l'annonce, on fixe le prix, on publie sur
@@ -598,17 +607,16 @@
 <footer class="fin">
   <div class="enveloppe">
     <div class="fin-contenu">
-      <span class="etiquette">Bêta privée</span>
       <h2 class="titrage">Dis-nous ce que tu as à vendre.</h2>
       <p>
-        On ouvre à une dizaine de personnes à la fois, pour rester capables de suivre
-        chaque objet. Écris-nous ce que tu as chez toi, on te répond.
+        Écris-nous ce que tu as chez toi : on crée ton accès et on te l'envoie par
+        courriel. Envie de savoir qui s'occupe de tes objets ? <a href="equipe.html">Voici l'équipe</a>.
       </p>
       <a class="bouton bouton--large" href="#acces">Demander un accès</a>
     </div>
     <div class="pied">
       <span class="mono">débarras.app</span>
-      <span>Vend sur leboncoin, Vinted et eBay.</span>
+      <span><a href="equipe.html">L'équipe</a> · Vend sur leboncoin, Vinted et eBay.</span>
     </div>
   </div>
 </footer>
@@ -626,8 +634,7 @@
         <span class="etiquette">Demande d'accès</span>
         <h1 class="titrage">Dis-nous ce que tu as à vendre.</h1>
         <p>
-          Deux minutes. On ouvre à une dizaine de personnes à la fois pour rester
-          capables de suivre chaque objet, et on répond à tout le monde.
+          Deux minutes. On crée ton accès et on te l'envoie par courriel.
         </p>
       </div>
 

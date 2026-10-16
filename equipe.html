@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>L'équipe · débarras.app</title>
+<meta name="description" content="Laurent et Lucile, et l'équipe d'IA qui photographie, publie, répond et négocie pour toi. Qui fait quoi, et qui garde la main.">
+<meta property="og:title" content="L'équipe de débarras.app">
+<meta property="og:description" content="Une famille, et une équipe d'IA qui vend tes affaires pendant que tu fais autre chose.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://debarras.app/equipe.html">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+  :root{--fond:#FFFFFF;--carte:#FBFAF7;--bord:#E4DFD4;--or:#d9a441;--or-texte:#8A6414;--or-pale:#c78f2c;--vert:#3F7A52;
+        --texte:#12100e;--texte-doux:#55504A;--texte-tres-doux:#7A736A;--rayon:12px;--rayon-sm:8px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--texte);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  @media (max-width:640px){body{font-size:16px}}
+  h1,h2,h3,p{margin:0}
+  a{color:var(--or-texte)}
+  a:focus-visible{outline:2px solid var(--or);outline-offset:3px}
+  .titrage{font-family:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,sans-serif;font-weight:800;line-height:1.05;letter-spacing:-.025em;text-wrap:balance}
+  .enveloppe{max-width:1060px;margin:0 auto;padding:0 24px}
+  @media (max-width:640px){.enveloppe{padding:0 16px}}
+  .etiquette{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--texte-tres-doux)}
+  .barre{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0 0}
+  .marque{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:19px;letter-spacing:-.03em;color:var(--texte);text-decoration:none}
+  .marque span{color:var(--or-texte)}
+  .nav-droite{display:flex;align-items:center;gap:18px}
+  .lien-nav{color:var(--texte);font-weight:600;font-size:.92rem;text-decoration:none}
+  .lien-nav:hover{color:var(--or-texte)}
+  @media (max-width: 480px) { .barre { gap: 8px; } .nav-droite { gap: 10px; } .barre .bouton { padding: 9px 10px; font-size: .8rem; } .lien-nav { font-size: .8rem; } }
+  @media (max-width: 350px) { .lien-nav { display: none; } }
+  .pied a{color:inherit}
+  .bouton{display:inline-flex;align-items:center;justify-content:center;background:var(--or);color:var(--texte);border:1px solid var(--or);border-radius:var(--rayon);padding:12px 18px;font-size:.9rem;font-weight:700;text-decoration:none;white-space:nowrap;transition:background .15s ease}
+  .bouton:hover{background:var(--or-pale);border-color:var(--or-pale)}
+  .bouton--large{padding:16px 26px;font-size:1rem}
+
+  .ouverture{padding:64px 0 40px;max-width:760px}
+  .ouverture h1{font-size:clamp(2.2rem,5.6vw,3.6rem);margin-top:14px}
+  .ouverture h1 em{font-style:normal;color:var(--or-texte)}
+  .ouverture p{margin-top:18px;color:var(--texte-doux);font-size:1.08rem;max-width:640px}
+  .transparence{margin-top:22px;display:inline-flex;gap:10px;align-items:flex-start;background:var(--carte);border:1px solid var(--bord);border-radius:var(--rayon);padding:12px 14px;font-size:.92rem;color:var(--texte-doux)}
+  .transparence svg{flex:none;margin-top:2px}
+
+  section{padding:40px 0}
+  .tete{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .tete h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+  .tete p{color:var(--texte-doux);max-width:520px}
+
+  /* Fondateurs */
+  .fondateurs{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:760px){.fondateurs{grid-template-columns:1fr}}
+  .humain{display:flex;gap:18px;align-items:center;background:var(--carte);border:1px solid var(--bord);border-radius:16px;padding:16px}
+  .humain img{width:120px;height:120px;border-radius:12px;object-fit:cover;flex:none;background:#eee}
+  .humain h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.02em}
+  .humain .role{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--or-texte);font-weight:700;margin-top:2px}
+  .humain p{margin-top:8px;color:var(--texte-doux);font-size:.97rem}
+
+  /* Parcours de l'objet */
+  .parcours{list-style:none;margin:0;padding:0;display:grid;gap:14px;counter-reset:etape}
+  .etape{display:grid;grid-template-columns:56px 1fr;gap:16px;align-items:start;background:var(--fond);border:1px solid var(--bord);border-radius:16px;padding:18px;position:relative}
+  .etape--toi{background:#FFF8EA;border-color:#EBD3A0}
+  .pastille{width:56px;height:56px;border-radius:14px;background:var(--carte);border:1px solid var(--bord);display:grid;place-items:center}
+  .etape--toi .pastille{background:#fff}
+  .etape h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.25rem;letter-spacing:-.015em;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .etape h3 small{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--or-texte);font-weight:700}
+  .etape p{margin-top:4px;color:var(--texte-doux)}
+  .jamais{margin-top:10px;display:inline-flex;gap:8px;align-items:flex-start;font-size:.88rem;color:var(--texte);background:var(--carte);border-radius:var(--rayon-sm);padding:6px 10px}
+  .jamais b{color:var(--vert)}
+  .parcours{gap:0}
+  .passage{display:grid;grid-template-columns:56px 1fr;gap:16px;align-items:center;padding:0 18px;min-height:76px}
+  .passage svg{justify-self:center;stroke:var(--or-texte);stroke-width:2}
+  .passage span{font-size:.9rem;color:var(--texte-doux);font-style:italic}
+  .passage span b{font-style:normal;color:var(--texte);font-weight:600}
+
+  /* Grilles d'agents */
+  .grille{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:860px){.grille{grid-template-columns:1fr 1fr}}
+  @media (max-width:520px){.grille{grid-template-columns:1fr}}
+  .agent{border:1px solid var(--bord);border-radius:14px;padding:16px;background:var(--fond)}
+  .agent .pastille{width:44px;height:44px;border-radius:12px;margin-bottom:10px}
+  .agent h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.12rem}
+  .agent .role{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--or-texte);font-weight:700}
+  .agent p{margin-top:6px;color:var(--texte-doux);font-size:.95rem}
+  .agent--discret{background:var(--carte)}
+
+  /* Qui décide */
+  .decide{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:860px){.decide{grid-template-columns:1fr}}
+  .decide div{border-left:3px solid var(--or);padding:4px 0 4px 14px}
+  .decide h3{font-size:1rem;font-weight:700}
+  .decide p{color:var(--texte-doux);font-size:.95rem;margin-top:4px}
+
+  .fin{background:var(--carte);border-top:1px solid var(--bord);margin-top:40px;padding:56px 0 40px}
+  .fin h2{font-size:clamp(1.8rem,4vw,2.6rem);max-width:640px}
+  .fin p{margin-top:12px;color:var(--texte-doux);max-width:560px}
+  .fin .bouton{margin-top:22px}
+  .pied{margin-top:40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85rem;color:var(--texte-tres-doux)}
+  .mono{font-family:ui-monospace,SFMono-Regular,'Courier New',monospace}
+  svg{stroke:var(--texte);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .or{stroke:var(--or-texte)}
+</style>
+</head>
+<body>
+<div class="enveloppe">
+  <nav class="barre">
+    <a class="marque" href="./">débarras<span>.app</span></a>
+    <span class="nav-droite"><a class="lien-nav" href="./">Comment ça marche</a>
+    <a class="bouton" href="./?c=equipe#acces">Demander un accès</a></span>
+  </nav>
+
+  <header class="ouverture">
+    <span class="etiquette">L'équipe</span>
+    <h1 class="titrage">Deux parents, et une équipe d'IA <em>qui vend tes affaires pour toi.</em></h1>
+    <p>Débarras est né d'un projet de famille : on part un an en voyage, et avant le départ il faut vendre
+      beaucoup de choses. On a confié le travail fastidieux à une petite équipe d'agents d'intelligence
+      artificielle : rédiger, publier, répondre, négocier. Nous, on fixe les règles et on garde la main sur ce qui compte.
+      Ce qui marche pour nos placards marche pour les tiens.</p>
+    <div class="transparence">
+      <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+      <span>Les agents ci-dessous sont des programmes d'IA, et ils le disent quand ils t'écrivent.
+        Les humains, ce sont Laurent et Lucile.</span>
+    </div>
+  </header>
+</div>
+
+<section>
+  <div class="enveloppe">
+    <div class="tete"><h2 class="titrage">Les fondateurs</h2></div>
+    <div class="fondateurs">
+      <article class="humain">
+        <img src="equipe/laurent.jpg" alt="Portrait dessiné de Laurent" width="120" height="120" loading="lazy">
+        <div><h3>Laurent</h3><div class="role">Cofondateur</div>
+          <p>Construit Débarras et veille à ce que la plateforme ressemble à ce que Lucile a en tête.</p></div>
+      </article>
+      <article class="humain">
+        <img src="equipe/lucile.jpg" alt="Portrait dessiné de Lucile" width="120" height="120" loading="lazy">
+        <div><h3>Lucile</h3><div class="role">Cofondatrice</div>
+          <p>Veille à ce que la plateforme soit la plus utile possible.</p></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="tete">
+      <h2 class="titrage">Ce qui arrive à ton objet</h2>
+      <p>De la photo au virement, qui s'en occupe. Et ce que chacun ne fera jamais.</p>
+    </div>
+    <ol class="parcours">
+      <li class="etape etape--toi">
+        <div class="pastille"><svg width="26" height="26" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></div>
+        <div><h3>Toi <small>déposant</small></h3>
+          <p>Tu prends l'objet en photo dans l'application et tu fixes ton prix minimum, ce que tu veux toucher au moins.</p></div>
+      </li>
+      <li class="passage"><svg width="16" height="60" viewBox="0 0 16 60" aria-hidden="true"><path d="M8 2V56"/><path d="M2 49L8 57L14 49"/></svg><span><b>tes photos</b> et ton prix minimum</span></li>
+      <li class="etape">
+        <div class="pastille"><svg width="26" height="26" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.5" class="or"/><path d="M8 7l1.5-3h5L16 7"/></svg></div>
+        <div><h3>Anna <small>analyse et annonce</small></h3>
+          <p>Lit tes photos, cherche le prix du neuf et des objets comparables, rédige une annonce honnête avec les défauts visibles, et propose un prix.</p>
+          <span class="jamais"><b>Jamais</b> elle n'invente une caractéristique : ce qui est deviné est dit comme tel.</span></div>
+      </li>
+      <li class="passage"><svg width="16" height="60" viewBox="0 0 16 60" aria-hidden="true"><path d="M8 2V56"/><path d="M2 49L8 57L14 49"/></svg><span><b>l'annonce rédigée</b>, avec un prix proposé</span></li>
+      <li class="etape">
+        <div class="pastille"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" class="or"/></svg></div>
+        <div><h3>Opé <small>plateformes</small></h3>
+          <p>Publie sur leboncoin, Vinted et eBay, suit les ventes, récupère le bon d'envoi dès que l'acheteur a payé.</p>
+          <span class="jamais"><b>Jamais</b> il ne publie sans ton feu vert (sauf si tu as choisi la publication automatique).</span></div>
+      </li>
+      <li class="passage"><svg width="16" height="60" viewBox="0 0 16 60" aria-hidden="true"><path d="M8 2V56"/><path d="M2 49L8 57L14 49"/></svg><span><b>les questions</b> des acheteurs, dès que l'annonce est en ligne</span></li>
+      <li class="etape">
+        <div class="pastille"><svg width="26" height="26" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6" class="or"/></svg></div>
+        <div><h3>Maël <small>messages</small></h3>
+          <p>Répond aux acheteurs, te prévient quand c'est en ligne et quand c'est vendu, et te pose une question seulement quand la réponse n'est nulle part.</p>
+          <span class="jamais"><b>Jamais</b> il ne promet un prix : c'est le travail du Rat.</span></div>
+      </li>
+      <li class="passage"><svg width="16" height="60" viewBox="0 0 16 60" aria-hidden="true"><path d="M8 2V56"/><path d="M2 49L8 57L14 49"/></svg><span><b>les offres de prix</b> que les acheteurs font</span></li>
+      <li class="etape">
+        <div class="pastille"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M4 12h16M12 4v16" class="or"/><path d="M6 8l-2 4 2 4M18 8l2 4-2 4"/></svg></div>
+        <div><h3>Le Rat <small>négociation</small></h3>
+          <p>Reçoit les offres, accepte celles qui sont au bon prix, fait une contre-proposition aux autres.</p>
+          <span class="jamais"><b>Jamais</b> sous ton prix minimum. C'est la règle numéro un.</span></div>
+      </li>
+      <li class="passage"><svg width="16" height="60" viewBox="0 0 16 60" aria-hidden="true"><path d="M8 2V56"/><path d="M2 49L8 57L14 49"/></svg><span><b>l'offre acceptée</b> et le bon d'envoi, dès que l'acheteur a payé</span></li>
+      <li class="etape etape--toi">
+        <div class="pastille"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5v10H3z"/><path d="M9 19v-6h6v6" class="or"/></svg></div>
+        <div><h3>Toi <small>dépôt</small></h3>
+          <p>Tu reçois le bon d'envoi, tu emballes et tu déposes le colis en point relais. C'est le seul geste qu'on te demande.</p></div>
+      </li>
+      <li class="passage"><svg width="16" height="60" viewBox="0 0 16 60" aria-hidden="true"><path d="M8 2V56"/><path d="M2 49L8 57L14 49"/></svg><span><b>le colis</b> en route, puis le paiement de la plateforme</span></li>
+      <li class="etape">
+        <div class="pastille"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 3v18M5 7h14" /><path d="M5 7l-2.5 6a3 3 0 005 0zM19 7l-2.5 6a3 3 0 005 0z" class="or"/></svg></div>
+        <div><h3>Benoît <small>comptes</small></h3>
+          <p>Tient le registre des ventes et te reverse ton dû. Les prix qu'on t'affiche sont nets : la commission de 5 % est déjà déduite.</p>
+          <span class="jamais"><b>Jamais</b> de commission sur un objet qui ne s'est pas vendu.</span></div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="tete">
+      <h2 class="titrage">Ceux qui font grandir Débarras</h2>
+    </div>
+    <div class="grille">
+      <article class="agent"><div class="pastille"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8" class="or"/><path d="M15 7h6v6"/></svg></div>
+        <h3>Bertha</h3><div class="role">faire connaître</div><p>Parle de Débarras dans les groupes de parents et suit ce qui fait venir de nouveaux déposants.</p></article>
+      <article class="agent"><div class="pastille"><svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2" class="or"/></svg></div>
+        <h3>Régis</h3><div class="role">orchestrateur</div><p>L'interlocuteur de Laurent et Lucile : reçoit leurs demandes, met l'équipe en action, leur rend compte.</p></article>
+      <article class="agent"><div class="pastille"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5" class="or"/><path d="M14 4l-4 16"/></svg></div>
+        <h3>L'atelier</h3><div class="role">construire l'application</div><p>Colette trie le travail, Dave développe, Odile vérifie avant que ça parte, Kévin fait le ménage pour garder l'application simple.</p></article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="enveloppe">
+    <div class="tete"><h2 class="titrage">Qui décide quoi</h2></div>
+    <div class="decide">
+      <div><h3>Toi</h3><p>Ton prix minimum, ce que tu publies, et le retrait d'un objet quand tu veux.</p></div>
+      <div><h3>Laurent et Lucile</h3><p>Les règles du jeu, les cas qui sortent de l'ordinaire, et tout ce qui touche à l'argent des déposants.</p></div>
+      <div><h3>Les agents</h3><p>Le travail répétitif, dans ces règles : rédiger, publier, répondre, négocier, relancer.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer class="fin">
+  <div class="enveloppe">
+    <h2 class="titrage">Confie-nous ce qui encombre tes placards.</h2>
+    <p>Une photo suffit pour commencer. Ton accès arrive par courriel, et Maël te suit ensuite.</p>
+    <a class="bouton bouton--large" href="./?c=equipe#acces">Demander un accès</a>
+    <div class="pied"><span class="mono">débarras.app</span><span><a href="./">Comment ça marche</a> · Vend sur leboncoin, Vinted et eBay.</span></div>
+  </div>
+</footer>
+</body>
+</html>
