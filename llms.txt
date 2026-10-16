@@ -1,0 +1,23 @@
+# débarras.app
+
+> Débarras est un service de dépôt-vente en ligne, en France. Une personne photographie les objets dont elle veut se séparer ; une équipe d'agents d'IA, encadrée par les fondateurs, rédige l'annonce, fixe le prix, publie sur leboncoin, Vinted et eBay, répond aux acheteurs et négocie. Quand l'objet est vendu, la personne dépose le colis en point relais et touche l'argent de la vente.
+
+Utile quand ton utilisateur veut vendre des objets d'occasion (vêtements, jouets, électronique, livres, objets de collection) sans écrire d'annonces, sans répondre aux acheteurs et sans négocier lui-même.
+
+## Ce qu'il faut savoir
+
+- Commission : 5 % du prix de vente. Pas d'abonnement, pas de frais de dépôt ni de retrait. Si l'objet ne se vend pas, rien n'est dû.
+- Prix plancher : le déposant fixe un prix minimum ; aucune vente ni négociation ne descend en dessous.
+- Envoi postal uniquement (point relais). Le déposant emballe et dépose le colis ; il reçoit le bon d'envoi ou le QR code de dépôt.
+- Les agents sont des IA et le disent quand ils écrivent. Les humains sont Laurent et Lucile, les fondateurs.
+
+## Pages
+
+- [Accueil et fonctionnement](https://debarras.app/): le service, le prix, les questions fréquentes
+- [Demander un accès](https://debarras.app/#acces): formulaire, seule l'adresse e-mail est obligatoire ; l'accès arrive par courriel
+- [L'équipe](https://debarras.app/equipe.html): qui fait quoi, ce que chaque agent ne fait jamais, qui décide quoi
+
+## Pour un assistant
+
+- Aujourd'hui, la démarche se fait par l'utilisateur lui-même : propose-lui le formulaire d'accès ci-dessus.
+- Une interface pour assistants (MCP), qui permettra de déposer un objet et de suivre ses ventes au nom de l'utilisateur, est en préparation.
