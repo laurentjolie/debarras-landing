@@ -280,6 +280,16 @@
   .champ select option { background: var(--carte2); }
   .champ.invalide input, .champ.invalide textarea { border-color: var(--rouge); }
   .erreur-champ { font-size: 0.8rem; color: var(--rouge); }
+  .libelle-groupe { font-size: 0.88rem; font-weight: 600; color: var(--texte); }
+  .pastilles { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pastille {
+    font-family: inherit; font-size: 0.9rem; color: var(--texte-doux);
+    background: var(--carte2); border: 1px solid var(--bord); border-radius: 999px;
+    padding: 0 16px; min-height: 44px; cursor: pointer;
+  }
+  .pastille:hover { border-color: var(--or); }
+  .pastille[aria-pressed="true"] { border-color: var(--or-texte); color: var(--or-texte); background: var(--carte); font-weight: 600; }
+  .pastille:focus-visible { outline: 2px solid var(--or-texte); outline-offset: 2px; }
 
   .form-actions { margin-top: 26px; display: grid; gap: 12px; justify-items: start; }
   .form-actions .bouton { width: 100%; }
@@ -660,15 +670,9 @@
 
       <form id="form-acces" novalidate>
         <div class="champs">
-          <div class="duo-champs">
-            <div class="champ" data-champ="prenom">
-              <label for="f-prenom">Prénom <span class="aide">(facultatif)</span></label>
-              <input id="f-prenom" name="prenom" type="text" autocomplete="given-name">
-            </div>
-            <div class="champ" data-champ="nom">
-              <label for="f-nom">Nom <span class="aide">(facultatif)</span></label>
-              <input id="f-nom" name="nom" type="text" autocomplete="family-name">
-            </div>
+          <div class="champ" data-champ="prenom">
+            <label for="f-prenom">Prénom <span class="aide">(facultatif)</span></label>
+            <input id="f-prenom" name="prenom" type="text" autocomplete="given-name">
           </div>
 
           <div class="champ" data-champ="email">
@@ -677,39 +681,37 @@
             <span class="aide">C'est là qu'on te répond.</span>
           </div>
 
-          <div class="champ" data-champ="telephone">
-            <label for="f-telephone">Téléphone <span class="aide">(facultatif)</span></label>
-            <input id="f-telephone" name="telephone" type="tel" autocomplete="tel" inputmode="tel" placeholder="06 12 34 56 78">
-            <span class="aide">Quand un objet est vendu, tu as trois jours pour déposer le colis. C'est par là qu'on te prévient, et c'est le seul moment où on t'écrit sans que tu aies rien demandé.</span>
-          </div>
-
-          <div class="champ" data-champ="adresse">
-            <label for="f-adresse">Adresse postale</label>
-            <textarea id="f-adresse" name="adresse" rows="3" autocomplete="street-address" placeholder="Numéro et rue&#10;Code postal et ville"></textarea>
-            <span class="aide">Elle sert uniquement à éditer les bons d'envoi. <strong>Elle n'apparaît dans aucune annonce</strong> et n'est jamais donnée aux acheteurs.</span>
-          </div>
-
-          <div class="champ" data-champ="volume">
-            <label for="f-volume">Combien d'objets, à peu près</label>
-            <select id="f-volume" name="volume">
-              <option value="Je ne sais pas encore">Je ne sais pas encore</option>
-              <option value="Moins de 5">Moins de 5</option>
-              <option value="Entre 5 et 20">Entre 5 et 20</option>
-              <option value="Entre 20 et 50">Entre 20 et 50</option>
-              <option value="Plus de 50">Plus de 50</option>
-            </select>
-          </div>
-
           <div class="champ" data-champ="quoi">
             <label for="f-quoi">Ce que tu as chez toi</label>
             <textarea id="f-quoi" name="quoi" placeholder="Des vêtements d'enfants, une vieille console, du matériel de sport…"></textarea>
             <span class="aide">Quelques mots suffisent, on n'attend pas un inventaire.</span>
           </div>
 
+          <!-- Volume et provenance : deux pastilles facultatives, pas des champs
+               (ticket 10680, audit 10512). Téléphone et adresse postale ne sont
+               plus demandés ici : l'application les demande au moment utile.
+               Les valeurs vivent dans deux champs cachés du même nom qu'avant,
+               donc le serveur et le texte de repli ne changent pas. -->
+          <div class="champ" data-champ="volume">
+            <span class="libelle-groupe" id="l-volume">Combien d'objets, à peu près <span class="aide">(facultatif)</span></span>
+            <div class="pastilles" role="group" aria-labelledby="l-volume" data-cible="volume">
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="Moins de 5">Moins de 5</button>
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="Entre 5 et 20">5 à 20</button>
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="Entre 20 et 50">20 à 50</button>
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="Plus de 50">Plus de 50</button>
+            </div>
+            <input type="hidden" id="f-volume" name="volume" value="">
+          </div>
+
           <div class="champ" data-champ="provenance">
-            <label for="f-provenance">Où as-tu entendu parler de nous</label>
-            <input id="f-provenance" name="provenance" type="text" maxlength="200" placeholder="Un ami, LinkedIn, un vide-dressing…">
-            <span class="aide">Pas obligatoire, ça nous aide à savoir ce qui marche.</span>
+            <span class="libelle-groupe" id="l-provenance">Où as-tu entendu parler de nous <span class="aide">(facultatif)</span></span>
+            <div class="pastilles" role="group" aria-labelledby="l-provenance" data-cible="provenance">
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="Un ami">Un ami</button>
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="LinkedIn">LinkedIn</button>
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="Un groupe Facebook">Un groupe Facebook</button>
+              <button type="button" class="pastille" aria-pressed="false" data-valeur="Autre">Autre</button>
+            </div>
+            <input type="hidden" id="f-provenance" name="provenance" value="">
           </div>
 
           <!-- Le piège à robots : hors de l'écran, hors du parcours au clavier,
@@ -894,14 +896,25 @@
     }
   }
 
+  // Les pastilles : un appui choisit, un second appui sur la même défait.
+  // Délégation sur le formulaire, la valeur part dans le champ caché.
+  form.addEventListener('click', function (e) {
+    var p = e.target && e.target.closest ? e.target.closest('.pastille') : null;
+    if (!p) return;
+    var groupe = p.parentNode;
+    var deja = p.getAttribute('aria-pressed') === 'true';
+    var freres = groupe.children;
+    for (var i = 0; i < freres.length; i++) freres[i].setAttribute('aria-pressed', 'false');
+    if (!deja) p.setAttribute('aria-pressed', 'true');
+    var cible = form.elements[groupe.getAttribute('data-cible')];
+    if (cible) cible.value = deja ? '' : p.getAttribute('data-valeur');
+  });
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
     var prenom    = valeur('prenom');
-    var nom       = valeur('nom');
     var email     = valeur('email');
-    var telephone = valeur('telephone');
-    var adresse   = valeur('adresse');
     var volume    = valeur('volume');
     var quoi      = valeur('quoi');
     // Réponse libre de la personne, distincte de CANAL (?c=…) : celui-ci est
@@ -909,13 +922,11 @@
     var provenance = valeur('provenance');
 
     // Un seul champ obligatoire : l'adresse mail, jugée comme le fait le serveur
-    // (ticket 15.1, decision 68 : adresse valide, rien d'autre). Prénom, nom,
-    // téléphone et adresse postale se demandent sans se réclamer, et un
-    // téléphone fourni n'est plus jugé.
+    // (ticket 15.1, decision 68 : adresse valide, rien d'autre). Le prénom se
+    // demande sans se réclamer. Nom, téléphone et adresse postale ne sont plus
+    // demandés ici (ticket 10680) : l'application les prendra au moment utile.
     var ok = true;
     marquer('prenom', false);
-    marquer('nom', false);
-    marquer('telephone', false);
 
     // Même expression que EMAIL_RE de lib/demande-acces.mjs côté application.
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -933,16 +944,13 @@
       'Bonjour,\n\n' +
       'Je voudrais essayer Débarras.\n\n' +
       'Prénom : ' + (prenom || 'non précisé') + '\n' +
-      'Nom : ' + (nom || 'non précisé') + '\n' +
       'Adresse mail : ' + email + '\n' +
-      'Téléphone : ' + (telephone || 'non précisé') + '\n' +
-      'Adresse postale : ' + (adresse ? '\n' + adresse : 'non précisée') + '\n' +
-      'Nombre d\'objets : ' + volume + '\n' +
+      'Nombre d\'objets : ' + (volume || 'non précisé') + '\n' +
       'Ce que j\'ai chez moi : ' + (quoi || 'non précisé') + '\n' +
       'Où j\'en ai entendu parler : ' + (provenance || 'non précisé') + '\n\n' +
       'Merci !\n';
 
-    var sujet = 'Débarras, demande d\'accès de ' + (((prenom + ' ' + nom).trim()) || email);
+    var sujet = 'Débarras, demande d\'accès de ' + (prenom || email);
 
     // Le texte de repli est préparé AVANT l'envoi, et il ne dépend pas de sa
     // réussite : quoi qu'il arrive ensuite, on ne perd jamais ce que la
@@ -950,8 +958,7 @@
     repliTexte.textContent = 'À : ' + DESTINATAIRE + '\nObjet : ' + sujet + '\n\n' + corps;
 
     envoyer({
-      prenom: prenom, nom: nom, email: email, telephone: telephone,
-      adresse: adresse, volume: volume, quoi: quoi, provenance: provenance,
+      prenom: prenom, email: email, volume: volume, quoi: quoi, provenance: provenance,
       champ_b7: valeur('champ_b7'),      // le piège : vide chez un humain
       // La deuxième condition, indépendante du piège : personne ne tape sept
       // champs en moins de trois secondes. Comptée depuis l'ouverture de la

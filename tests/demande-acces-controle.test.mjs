@@ -285,3 +285,33 @@ test('aucun champ autre que l\'e-mail n\'est required dans le HTML', () => {
   assert.equal(requis.length, 1, requis.join('\n'));
   assert.match(requis[0], /name="email"/);
 });
+
+// ticket 10680 : trois champs au lieu de huit (audit 10512, validé par Laurent le 23/10/2026)
+test('ticket 10680 : le formulaire ne demande plus nom, téléphone ni adresse postale', () => {
+  const noms = [...HTML.matchAll(/<(?:input|select|textarea)\b[^>]*\bname="([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual(noms.sort(), ['champ_b7', 'email', 'prenom', 'provenance', 'quoi', 'volume'].sort());
+});
+
+test('ticket 10680 : volume et provenance sont des pastilles de 44 px, pas des champs visibles', () => {
+  assert.match(HTML, /<input type="hidden" id="f-volume" name="volume"/);
+  assert.match(HTML, /<input type="hidden" id="f-provenance" name="provenance"/);
+  assert.match(HTML, /\.pastille \{[^}]*min-height: 44px/);
+  assert.equal((HTML.match(/class="pastille"/g) || []).length, 8);
+});
+
+test('ticket 10680 : l\'envoi ne porte plus nom, téléphone ni adresse, et une pastille choisie part dans volume', async () => {
+  const c = construireContexte();
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  const pastille = { attrs: { 'aria-pressed': 'false', 'data-valeur': 'Entre 5 et 20' },
+    getAttribute(k) { return this.attrs[k]; }, setAttribute(k, v) { this.attrs[k] = v; } };
+  pastille.parentNode = { children: [pastille], getAttribute: () => 'volume' };
+  pastille.closest = () => pastille;
+  c.form.listeners.click[0]({ target: pastille });
+  assert.equal(pastille.attrs['aria-pressed'], 'true');
+  await c.soumettre({ prenom: 'Jo', email: 'jo@exemple.fr', quoi: 'des livres', champ_b7: '' });
+  const corps = JSON.parse(c.fetchAppels[0].opts.body);
+  assert.equal(corps.volume, 'Entre 5 et 20');
+  for (const k of ['nom', 'telephone', 'adresse']) assert.equal(k in corps, false, k);
+  c.form.listeners.click[0]({ target: pastille });
+  assert.equal(c.form.elements.volume.value, '', 'un second appui défait le choix');
+});
