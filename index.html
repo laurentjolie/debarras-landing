@@ -358,6 +358,23 @@
   }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  /* ── Ticket 10710 : ouverture à deux colonnes, écran de l'application + preuve datée ── */
+  .ouverture--preuve { grid-template-columns: minmax(0, 1fr) 280px; align-items: center; column-gap: 56px; }
+  .ouverture--preuve .texte { display: grid; gap: 20px; }
+  .ouverture--preuve h1 { max-width: 15ch; font-size: clamp(36px, 5.2vw, 62px); }
+  .ouverture--preuve .ecran { margin: 0; justify-self: center; }
+  .ouverture--preuve .ecran .tel { margin: 0 auto; width: 260px; border: 8px solid #12100e; border-radius: 36px; overflow: hidden; background: #12100e; box-shadow: 0 14px 36px rgba(18,16,14,.22); }
+  .ouverture--preuve .ecran .tel img { display: block; width: 100%; height: auto; }
+  .ouverture--preuve .ecran figcaption { font-size: .78rem; color: var(--texte-tres-doux); text-align: center; margin-top: 10px; }
+  .preuve { font-size: .92rem; color: var(--texte-doux); max-width: 56ch; border-top: 1px solid var(--bord); padding-top: 14px; }
+  .preuve b { color: var(--texte); }
+  .preuve small { display: block; margin-top: 4px; font-size: .78rem; color: var(--texte-tres-doux); }
+  @media (max-width: 860px) {
+    .ouverture--preuve { grid-template-columns: 1fr; }
+    .ouverture--preuve .ecran { order: 2; }
+    .ouverture--preuve .ecran .tel { width: 220px; }
+  }
 </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Service","name":"débarras.app","url":"https://debarras.app/",
@@ -380,18 +397,26 @@
     </span>
   </nav>
 
-  <header class="ouverture">
-    <span class="etiquette">Envoi postal uniquement</span>
-    <h1 class="titrage">Tes affaires se vendent <em>pendant que tu fais autre chose.</em></h1>
-    <p class="accroche">
-      Tu photographies l'objet. On écrit l'annonce, on fixe le prix, on publie sur
-      leboncoin, Vinted et eBay, et on répond aux acheteurs. Quand c'est vendu, tu
-      déposes le colis en point relais, et tu touches l'argent de la vente.
-    </p>
-    <div class="actions">
-      <a class="bouton bouton--large" href="#acces">Demander un accès</a>
-      <span class="note">Une photo suffit pour commencer.</span>
+  <header class="ouverture ouverture--preuve">
+    <div class="texte">
+      <span class="etiquette">Envoi postal uniquement</span>
+      <h1 class="titrage">Tes affaires se vendent <em>pendant que tu fais autre chose.</em></h1>
+      <p class="accroche">
+        Tu photographies l'objet. On écrit l'annonce, on fixe le prix, on publie sur
+        leboncoin, Vinted et eBay, et on répond aux acheteurs. Quand c'est vendu, tu
+        déposes le colis en point relais, et tu touches l'argent de la vente.
+      </p>
+      <div class="actions">
+        <a class="bouton bouton--large" href="#acces">Demander un accès</a>
+        <span class="note">Une photo suffit pour commencer.</span>
+      </div>
+      <p class="preuve"><b>18 objets vendus depuis le 1er septembre</b> · vendus en 23 jours en médiane après leur validation · commission 5 %, rien si ça ne part pas.
+        <small>Chiffres relevés le 24 octobre 2026.</small></p>
     </div>
+    <figure class="ecran">
+      <div class="tel"><img src="ecran-ce-quon-te-doit.png" width="780" height="1688" alt="Écran « Ce qu'on te doit » de l'application : le montant à te virer, objet par objet"></div>
+      <figcaption>L'écran de l'application où tu vois ce qu'on te doit (montants d'exemple).</figcaption>
+    </figure>
   </header>
 
   <section class="section section--haut">
