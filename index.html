@@ -287,6 +287,8 @@
   .pastille:hover { border-color: var(--or); }
   .pastille[aria-pressed="true"] { border-color: var(--or-texte); color: var(--or-texte); background: var(--carte); font-weight: 600; }
   .pastille:focus-visible { outline: 2px solid var(--or-texte); outline-offset: 2px; }
+  .provenance-qui { display: grid; gap: 6px; margin-top: 10px; }
+  .provenance-qui[hidden] { display: none; }
 
   .form-actions { margin-top: 26px; display: grid; gap: 12px; justify-items: start; }
   .form-actions .bouton { width: 100%; }
@@ -734,6 +736,15 @@
               <button type="button" class="pastille" aria-pressed="false" data-valeur="Autre">Autre</button>
             </div>
             <input type="hidden" id="f-provenance" name="provenance" value="">
+            <!-- « De la part de qui » (ticket 11859) : le parrainage part sans
+                 lien codé (ticket 11853), ce champ est sa seule mesure. Montré
+                 seulement après « Un ami » ou « Autre », facultatif, et ajouté
+                 à provenance à l'envoi (« Un ami : Morgane ») : le serveur
+                 ne reçoit toujours qu'un seul champ provenance. -->
+            <div class="provenance-qui" id="bloc-provenance-qui" hidden>
+              <label for="f-provenance-qui" id="l-provenance-qui">De la part de qui ? <span class="aide">(facultatif)</span></label>
+              <input id="f-provenance-qui" name="provenance_qui" type="text" maxlength="60" autocomplete="off">
+            </div>
           </div>
 
           <!-- Le piège à robots : hors de l'écran, hors du parcours au clavier,
@@ -930,7 +941,25 @@
     if (!deja) p.setAttribute('aria-pressed', 'true');
     var cible = form.elements[groupe.getAttribute('data-cible')];
     if (cible) cible.value = deja ? '' : p.getAttribute('data-valeur');
+    if (groupe.getAttribute('data-cible') === 'provenance') montrerQui(deja ? '' : p.getAttribute('data-valeur'));
   });
+
+  // La ligne « qui » de la provenance (ticket 11859) : visible seulement
+  // après « Un ami » ou « Autre ». Cachée, elle garde ce qu'on y a tapé
+  // (retour possible sur la pastille) mais ne part pas avec la demande.
+  var QUI_SELON = { 'Un ami': 'De la part de qui ?', 'Autre': 'Où ça ?' };
+  function montrerQui(choix) {
+    var bloc = document.getElementById('bloc-provenance-qui');
+    var libelle = document.getElementById('l-provenance-qui');
+    if (!bloc) return;
+    bloc.hidden = !QUI_SELON[choix];
+    if (libelle && QUI_SELON[choix] && libelle.firstChild) libelle.firstChild.nodeValue = QUI_SELON[choix] + ' ';
+  }
+  function provenanceComplete() {
+    var choix = valeur('provenance');
+    var qui = valeur('provenance_qui').replace(/\s+/g, ' ').slice(0, 60);
+    return (QUI_SELON[choix] && qui) ? choix + ' : ' + qui : choix;
+  }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -941,7 +970,8 @@
     var quoi      = valeur('quoi');
     // Réponse libre de la personne, distincte de CANAL (?c=…) : celui-ci est
     // posé par le lien qu'on lui a envoyé, celle-là par ce qu'elle en dit.
-    var provenance = valeur('provenance');
+    // Avec « Un ami » ou « Autre », la ligne « qui » s'y ajoute (ticket 11859).
+    var provenance = provenanceComplete();
 
     // Un seul champ obligatoire : l'adresse mail, jugée comme le fait le serveur
     // (ticket 15.1, decision 68 : adresse valide, rien d'autre). Le prénom se

@@ -52,12 +52,12 @@ function creerElement(id) {
 // addEventListener, form.elements). Pas un navigateur, juste assez pour que
 // le vrai script tourne sans toucher le réseau.
 function construireContexte({ search = '' } = {}) {
-  const ids = ['repli', 'repli-texte', 'repli-motif', 'merci', 'controle', 'controle-titre', 'btn-envoyer', 'btn-copier'];
+  const ids = ['repli', 'repli-texte', 'repli-motif', 'merci', 'controle', 'controle-titre', 'btn-envoyer', 'btn-copier', 'bloc-provenance-qui'];
   const elements = new Map();
   for (const id of ids) elements.set(id, creerElement(id));
   elements.get('btn-envoyer').textContent = 'Envoyer ma demande';
 
-  const champs = ['prenom', 'nom', 'email', 'telephone', 'adresse', 'volume', 'quoi', 'provenance', 'champ_b7'];
+  const champs = ['prenom', 'nom', 'email', 'telephone', 'adresse', 'volume', 'quoi', 'provenance', 'provenance_qui', 'champ_b7'];
   const formElements = {};
   for (const nom of champs) formElements[nom] = { value: '' };
 
@@ -289,7 +289,8 @@ test('aucun champ autre que l\'e-mail n\'est required dans le HTML', () => {
 // ticket 10680 : trois champs au lieu de huit (audit 10512, validé par Laurent le 23/10/2026)
 test('ticket 10680 : le formulaire ne demande plus nom, téléphone ni adresse postale', () => {
   const noms = [...HTML.matchAll(/<(?:input|select|textarea)\b[^>]*\bname="([^"]+)"/g)].map(m => m[1]);
-  assert.deepEqual(noms.sort(), ['champ_b7', 'email', 'prenom', 'provenance', 'quoi', 'volume'].sort());
+  // provenance_qui : la ligne « de la part de qui » du ticket 11859, jointe à provenance à l'envoi.
+  assert.deepEqual(noms.sort(), ['champ_b7', 'email', 'prenom', 'provenance', 'provenance_qui', 'quoi', 'volume'].sort());
 });
 
 test('ticket 10680 : volume et provenance sont des pastilles de 44 px, pas des champs visibles', () => {
@@ -314,4 +315,62 @@ test('ticket 10680 : l\'envoi ne porte plus nom, téléphone ni adresse, et une 
   for (const k of ['nom', 'telephone', 'adresse']) assert.equal(k in corps, false, k);
   c.form.listeners.click[0]({ target: pastille });
   assert.equal(c.form.elements.volume.value, '', 'un second appui défait le choix');
+});
+
+// Ticket 11859 (suite de 11853) : le parrainage part sans lien codé, la
+// provenance libre est sa seule mesure ; les pastilles de 10680 ne doivent
+// pas perdre « de la part de qui ».
+function pastilleProvenance(valeurPastille) {
+  const p = { attrs: { 'aria-pressed': 'false', 'data-valeur': valeurPastille },
+    getAttribute(k) { return this.attrs[k]; }, setAttribute(k, v) { this.attrs[k] = v; } };
+  p.parentNode = { children: [p], getAttribute: () => 'provenance' };
+  p.closest = () => p;
+  return p;
+}
+
+test('ticket 11859 : « Un ami » et « Morgane » donnent une provenance qui contient Morgane, envoi et repli', async () => {
+  const c = construireContexte();
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  const bloc = c.elements.get('bloc-provenance-qui');
+  bloc.hidden = true;
+  c.form.listeners.click[0]({ target: pastilleProvenance('Un ami') });
+  assert.equal(bloc.hidden, false, 'la ligne « qui » apparaît après « Un ami »');
+  await c.soumettre({ email: 'jo@exemple.fr', provenance_qui: '  Morgane ', champ_b7: '' });
+  const corps = JSON.parse(c.fetchAppels[0].opts.body);
+  assert.equal(corps.provenance, 'Un ami : Morgane');
+  assert.equal('provenance_qui' in corps, false, 'le serveur ne reçoit toujours qu\'un champ provenance');
+  assert.match(c.texte('repli-texte'), /Où j'en ai entendu parler : Un ami : Morgane/);
+});
+
+test('ticket 11859 : « Autre » montre aussi la ligne et la joint', async () => {
+  const c = construireContexte();
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  c.form.listeners.click[0]({ target: pastilleProvenance('Autre') });
+  assert.equal(c.elements.get('bloc-provenance-qui').hidden, false);
+  await c.soumettre({ email: 'jo@exemple.fr', provenance_qui: 'le marché', champ_b7: '' });
+  assert.equal(JSON.parse(c.fetchAppels[0].opts.body).provenance, 'Autre : le marché');
+});
+
+test('ticket 11859 : avec LinkedIn la ligne reste cachée et ce qu\'on y avait tapé ne part pas', async () => {
+  const c = construireContexte();
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  c.form.listeners.click[0]({ target: pastilleProvenance('LinkedIn') });
+  assert.equal(c.elements.get('bloc-provenance-qui').hidden, true);
+  await c.soumettre({ email: 'jo@exemple.fr', provenance_qui: 'Morgane', champ_b7: '' });
+  assert.equal(JSON.parse(c.fetchAppels[0].opts.body).provenance, 'LinkedIn');
+});
+
+test('ticket 11859 : « Un ami » sans nom reste « Un ami », et un nom trop long est coupé à 60', async () => {
+  const c = construireContexte();
+  c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  c.form.listeners.click[0]({ target: pastilleProvenance('Un ami') });
+  await c.soumettre({ email: 'jo@exemple.fr', provenance_qui: '', champ_b7: '' });
+  assert.equal(JSON.parse(c.fetchAppels[0].opts.body).provenance, 'Un ami');
+  await c.soumettre({ email: 'jo@exemple.fr', provenance_qui: 'x'.repeat(90), champ_b7: '' });
+  assert.equal(JSON.parse(c.fetchAppels[1].opts.body).provenance, 'Un ami : ' + 'x'.repeat(60));
+});
+
+test('ticket 11859 : la ligne « qui » est dans le HTML, cachée au départ, 60 caractères au plus', () => {
+  assert.match(HTML, /<div class="provenance-qui" id="bloc-provenance-qui" hidden>/);
+  assert.match(HTML, /<input id="f-provenance-qui" name="provenance_qui" type="text" maxlength="60"/);
 });
