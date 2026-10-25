@@ -1,0 +1,2 @@
+# Ticket 11723 : une copie .avant- est de la litiere (git log suffit) et ce depot est public.
+*.avant-*
