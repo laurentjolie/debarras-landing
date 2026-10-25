@@ -40,17 +40,17 @@ test('11203 : médiane d\'un nombre pair de ventes, arrondie au jour', () => {
 });
 
 test('11203 : la date du relevé s\'écrit en lettres', () => {
-  assert.equal(dateEnLettres('2026-11-01'), '1 novembre 2026');
   assert.equal(dateEnLettres('2027-08-15'), '15 août 2027');
+  assert.equal(dateEnLettres('2026-11-02'), '2 novembre 2026');
   assert.throws(() => dateEnLettres('2026-13-01'));
 });
 
 test('11203 : réécrit les trois valeurs du vrai index.html, et rien d\'autre', () => {
   const neuf = reecrire(HTML, { vendus: 41, mediane: 17, date: '2026-12-01' });
-  assert.deepEqual(lire(neuf), { vendus: '41', mediane: '17', date: '1 décembre 2026' });
+  assert.deepEqual(lire(neuf), { vendus: '41', mediane: '17', date: '1er décembre 2026' });
   assert.equal(neuf.length - HTML.length,
     '41'.length - lire(HTML).vendus.length + '17'.length - lire(HTML).mediane.length
-    + '1 décembre 2026'.length - lire(HTML).date.length);
+    + '1er décembre 2026'.length - lire(HTML).date.length);
   assert.match(neuf, /<b>41 objets vendus depuis le 1er septembre<\/b> · vendus en 17 jours en médiane après leur validation/);
 });
 
@@ -58,4 +58,12 @@ test('11203 : refuse une mesure vide ou une page où un motif manque', () => {
   assert.throws(() => reecrire(HTML, { vendus: 0, mediane: null, date: '2026-12-01' }), /vendus refusé/);
   const sansDate = HTML.replace(/<small>Chiffres relevés le [^<]+\.<\/small>/, '');
   assert.throws(() => reecrire(sansDate, { vendus: 3, mediane: 4, date: '2026-12-01' }), /« date » trouvé 0 fois/);
+});
+
+// 11601 : le relevé mensuel tourne le 1er ; la page dit déjà « depuis le 1er septembre ».
+test('11601 : le premier du mois s\'écrit « 1er »', () => {
+  assert.equal(dateEnLettres('2026-11-01'), '1er novembre 2026');
+  assert.equal(dateEnLettres('2027-01-01'), '1er janvier 2027');
+  const neuf = reecrire(HTML, { vendus: 3, mediane: 4, date: '2026-11-01' });
+  assert.match(neuf, /<small>Chiffres relevés le 1er novembre 2026\.<\/small>/);
 });

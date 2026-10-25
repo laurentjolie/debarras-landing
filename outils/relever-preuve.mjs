@@ -45,7 +45,7 @@ export function mesurer(db) {
 export function dateEnLettres(iso) {
   const [a, mo, j] = iso.split('-').map(Number);
   if (!a || !mo || !j || mo > 12 || j > 31) throw new Error(`date illisible : ${iso}`);
-  return `${j} ${MOIS[mo - 1]} ${a}`;
+  return `${j === 1 ? '1er' : j} ${MOIS[mo - 1]} ${a}`;
 }
 
 const MOTIFS = {
