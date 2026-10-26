@@ -1,2 +1,21 @@
 # Ticket 11723 : une copie .avant- est de la litiere (git log suffit) et ce depot est public.
 *.avant-*
+
+# Points de montage du bac a sable de Claude Code (bubblewrap) : il lie /dev/null
+# sur ces chemins de la racine pour les proteger en ecriture, et cree a cet effet
+# un fichier vide sur le disque quand ils manquent (constat du 25/10/2026, ticket 11325,
+# /proc/self/mountinfo ; recopie ici le 26/10/2026). Aucun n est un fichier du depot.
+/.bashrc
+/.bash_profile
+/.profile
+/.zshrc
+/.zprofile
+/.gitconfig
+/.gitmodules
+/.mcp.json
+/.ripgreprc
+/.idea
+/.vscode
+# Meme mecanisme sous .claude/ (agents, hooks, launch.json... lies sur /dev/null,
+# vu le 26/10/2026, ticket 12466) ; debarras l'ignore deja.
+/.claude/
