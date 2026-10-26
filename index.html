@@ -855,6 +855,27 @@
     var acces = window.location.hash === '#acces';
     document.body.classList.toggle('acces', acces);
     if (acces) window.scrollTo(0, 0);
+    if (acces) signalerFormulaire();
+  }
+
+  // L'OUVERTURE DU FORMULAIRE (ticket 12418), meme compteur que le ping de
+  // visite plus bas et memes garanties : seulement avec un code ?d=, une seule
+  // fois par chargement, aucun cookie, aucun identifiant, echec silencieux.
+  // Le code est relu ici (et non CODE) : router() tourne une premiere fois
+  // avant que CODE soit pose, quand la page s'ouvre directement sur #acces.
+  var FORMULAIRE_SIGNALE = false;
+  function signalerFormulaire() {
+    if (FORMULAIRE_SIGNALE) return;
+    var code = codeDepuisUrl();
+    if (!code || !window.fetch) return;
+    FORMULAIRE_SIGNALE = true;
+    try {
+      fetch(API_VISITES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code, etape: 'formulaire' })
+      }).catch(function () {});
+    } catch (e) {}
   }
   window.addEventListener('hashchange', router);
   router();

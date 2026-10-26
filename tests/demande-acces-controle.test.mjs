@@ -51,7 +51,7 @@ function creerElement(id) {
 // script réel : getElementById, classList, querySelector, scrollIntoView,
 // addEventListener, form.elements). Pas un navigateur, juste assez pour que
 // le vrai script tourne sans toucher le réseau.
-function construireContexte({ search = '' } = {}) {
+function construireContexte({ search = '', hash = '' } = {}) {
   const ids = ['repli', 'repli-texte', 'repli-motif', 'merci', 'controle', 'controle-titre', 'btn-envoyer', 'btn-copier', 'bloc-provenance-qui'];
   const elements = new Map();
   for (const id of ids) elements.set(id, creerElement(id));
@@ -75,10 +75,11 @@ function construireContexte({ search = '' } = {}) {
     getElementById(id) { return elements.get(id) || null; },
     createElement() { return creerElement('tmp'); },
   };
-  const location = { hash: '', search };
+  const location = { hash, search };
+  const ecouteursFenetre = {};
   const window_ = {
     location,
-    addEventListener() {},
+    addEventListener(type, fn) { (ecouteursFenetre[type] = ecouteursFenetre[type] || []).push(fn); },
     scrollTo() {},
     get fetch() { return sandbox.fetch; },
     AbortController: globalThis.AbortController,
@@ -101,6 +102,11 @@ function construireContexte({ search = '' } = {}) {
   return {
     form, elements, fetchAppels,
     definirReponse(impl) { fetchImpl = impl; },
+    // Simule un clic sur un lien d'ancre : l'ancre change, puis hashchange.
+    changerAncre(h) {
+      location.hash = h;
+      for (const fn of ecouteursFenetre.hashchange || []) fn({});
+    },
     async soumettre(valeurs) {
       for (const [nom, v] of Object.entries(valeurs)) form.elements[nom].value = v;
       const gestionnaire = form.listeners.submit[0];
@@ -373,4 +379,55 @@ test('ticket 11859 : « Un ami » sans nom reste « Un ami », et un nom trop lo
 test('ticket 11859 : la ligne « qui » est dans le HTML, cachée au départ, 60 caractères au plus', () => {
   assert.match(HTML, /<div class="provenance-qui" id="bloc-provenance-qui" hidden>/);
   assert.match(HTML, /<input id="f-provenance-qui" name="provenance_qui" type="text" maxlength="60"/);
+});
+
+// ── Ticket 12418 : l'ouverture du formulaire, comptée par code ─────────────
+// Entre « page ouverte » et « demande envoyée », un seul jalon de plus :
+// le passage sur #acces, une fois par chargement, et seulement avec un code.
+
+function appelsFormulaire(c) {
+  return c.fetchAppels
+    .filter((a) => a.url === 'https://app.debarras.app/api/visite-landing')
+    .map((a) => JSON.parse(a.opts.body))
+    .filter((corps) => corps.etape === 'formulaire');
+}
+
+test('ticket 12418 : avec ?d=issy1, ouvrir #acces envoie {code, etape: "formulaire"} au compteur', () => {
+  const c = construireContexte({ search: '?d=issy1' });
+  assert.equal(appelsFormulaire(c).length, 0, 'rien avant l\'ouverture du formulaire');
+  c.changerAncre('#acces');
+  assert.deepEqual(appelsFormulaire(c), [{ code: 'issy1', etape: 'formulaire' }]);
+  const appel = c.fetchAppels.find((a) => JSON.parse(a.opts.body).etape === 'formulaire');
+  assert.equal(appel.opts.method, 'POST');
+  assert.equal(appel.opts.credentials, undefined, 'aucun cookie demandé');
+});
+
+test('ticket 12418 : une seule fois par chargement, même après des allers-retours', () => {
+  const c = construireContexte({ search: '?d=issy1' });
+  c.changerAncre('#acces');
+  c.changerAncre('');
+  c.changerAncre('#acces');
+  assert.equal(appelsFormulaire(c).length, 1);
+});
+
+test('ticket 12418 : une page ouverte directement sur #acces le signale aussi, une fois', () => {
+  const c = construireContexte({ search: '?d=issy1', hash: '#acces' });
+  assert.deepEqual(appelsFormulaire(c), [{ code: 'issy1', etape: 'formulaire' }]);
+  assert.equal(c.fetchAppels.length, 2, 'le ping de visite et celui du formulaire, rien d\'autre');
+});
+
+test('ticket 12418 : sans ?d=, ouvrir le formulaire n\'envoie rien', () => {
+  const c = construireContexte({ search: '' });
+  c.changerAncre('#acces');
+  assert.equal(c.fetchAppels.length, 0);
+});
+
+test('ticket 12418 : un échec du ping du formulaire est ignoré en silence', async () => {
+  const c = construireContexte({ search: '?d=issy1' });
+  c.definirReponse(async () => { throw new Error('réseau coupé'); });
+  c.changerAncre('#acces');
+  await new Promise((r) => setImmediate(r));
+  assert.equal(c.visible('repli'), false);
+  assert.equal(c.visible('merci'), false);
+  assert.equal(c.visible('controle'), false);
 });
