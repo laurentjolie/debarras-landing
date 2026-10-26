@@ -49,3 +49,19 @@ test('11025 : aucune feuille de style ni preconnect vers un autre domaine', () =
     assert.ok(!/@import\s+url\(\s*["']?(https?:)?\/\//.test(html), `${page} : @import distant`);
   }
 });
+
+// Ticket 12059 (26/10/2026), suite de 11025 : sans la feuille Google, le nom
+// « Bricolage Grotesque » en tête d'une pile ne chargeait rien chez la plupart des
+// visiteurs, mais donnait un autre rendu à qui l'a installée et laissait croire au
+// lecteur du code que la police était servie. Décision polices-landing-11283 :
+// police système, donc le nom ne figure plus dans aucune pile.
+test('12059 : aucune pile font-family ne nomme Bricolage Grotesque', () => {
+  for (const page of PAGES) {
+    const html = fs.readFileSync(path.join(DEPOT, page), 'utf8');
+    const piles = html.match(/font-family\s*:[^;}]*/g) || [];
+    for (const pile of piles) {
+      assert.ok(!/bricolage/i.test(pile), `${page} : ${pile.trim()}`);
+    }
+    assert.ok(!/bricolage/i.test(html), `${page} nomme encore Bricolage`);
+  }
+});
