@@ -1,6 +1,6 @@
 # débarras.app
 
-> Débarras est un service de dépôt-vente en ligne, en France. Une personne photographie les objets dont elle veut se séparer ; une équipe d'agents d'IA, encadrée par les fondateurs, rédige l'annonce, fixe le prix, publie sur leboncoin, Vinted et eBay, répond aux acheteurs et négocie. Quand l'objet est vendu, la personne dépose le colis en point relais et touche l'argent de la vente.
+> Débarras est un logiciel d'aide à la vente en ligne, en France : la personne reste le vendeur. Une personne photographie les objets dont elle veut se séparer ; une équipe d'agents d'IA, encadrée par les fondateurs, rédige l'annonce, fixe le prix, publie sur leboncoin, Vinted et eBay, répond aux acheteurs et négocie. Quand l'objet est vendu, la personne dépose le colis en point relais et touche l'argent de la vente.
 
 Utile quand ton utilisateur veut vendre des objets d'occasion (vêtements, jouets, électronique, livres, objets de collection) sans écrire d'annonces, sans répondre aux acheteurs et sans négocier lui-même.
 
