@@ -72,3 +72,11 @@ test('13149 : aucune page publiée ne promet que Débarras encaisse ou reverse',
   }
   assert.deepEqual(trouvees, []);
 });
+
+// Ticket 13157 (28/10/2026) : 13149 avait retiré la référence à l'écran, pas le fichier.
+// GitHub Pages publie l'arbre tel quel, sans construction (HEBERGEMENT.md) : un PNG resté
+// dans le dépôt reste servi à son URL directe, même si plus aucune page ne le cite.
+test('13157 : aucune image de reversement ne reste dans les fichiers publiés', () => {
+  const restantes = IMAGES_DE_REVERSEMENT.filter(img => fs.existsSync(path.join(DEPOT, img)));
+  assert.deepEqual(restantes, []);
+});
