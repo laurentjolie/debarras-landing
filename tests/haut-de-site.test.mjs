@@ -1,7 +1,9 @@
 // Ticket 11198 (24/10/2026), suite de l'aperçu 10710 (audit UI 10512, suggestion 2) :
 // le haut de site porte l'accroche, le bouton d'accès, une preuve chiffrée datée et
 // l'écran « Ce qu'on te doit » de l'application, à deux colonnes sur ordinateur et
-// empilés sur téléphone. Lit le VRAI index.html, aucun réseau.
+// empilés sur téléphone. Ticket 13149 (28/10/2026) : cet écran est retiré, son image
+// promettait un reversement (« à te virer aujourd'hui », D-2026-10-26-a) ; le haut de
+// site ne garde que la colonne texte. Lit le VRAI index.html, aucun réseau.
 //
 //   node --test tests/*.test.mjs
 import { test } from 'node:test';
@@ -26,7 +28,7 @@ test('11198 : un seul haut de site, et c\'est le nouveau', () => {
 
 test('11198 : accroche et bouton d\'accès, dans cet ordre, dans la colonne texte', () => {
   const b = bloc();
-  const texte = b.slice(b.indexOf('<div class="texte">'), b.indexOf('<figure class="ecran">'));
+  const texte = b.slice(b.indexOf('<div class="texte">'));
   const h1 = texte.indexOf('<h1 class="titrage">Tes affaires se vendent <em>pendant que tu fais autre chose.</em></h1>');
   const bouton = texte.indexOf('<a class="bouton bouton--large" href="#acces">Demander un accès</a>');
   const preuve = texte.indexOf('<p class="preuve">');
@@ -42,20 +44,9 @@ test('11198 : la preuve est chiffrée et datée', () => {
   assert.match(b, /<small>Chiffres relevés le \d{1,2} (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre) 20\d\d\.<\/small>/);
 });
 
-test('11198 : l\'écran de l\'application est servi par le dépôt, dimensionné, légendé', () => {
+test('13149 : le haut de site ne montre plus d\'écran de reversement, ni sa colonne', () => {
   const b = bloc();
-  const m = b.match(/<img src="([^"]+)" width="(\d+)" height="(\d+)" alt="([^"]+)">/);
-  assert.ok(m, 'image de l\'écran introuvable');
-  assert.ok(fs.existsSync(path.join(DEPOT, m[1])), `${m[1]} absent du dépôt`);
-  const png = fs.readFileSync(path.join(DEPOT, m[1]));
-  assert.equal(png.readUInt32BE(16), Number(m[2]), 'largeur déclarée = largeur du PNG');
-  assert.equal(png.readUInt32BE(20), Number(m[3]), 'hauteur déclarée = hauteur du PNG');
-  assert.match(m[4], /Ce qu'on te doit/);
-  assert.match(b, /<figcaption>[^<]*\(montants d'exemple\)\.<\/figcaption>/);
-});
-
-test('11198 : deux colonnes sur ordinateur, l\'écran passe sous le texte sur téléphone', () => {
-  assert.match(HTML, /\.ouverture--preuve \{ grid-template-columns: minmax\(0, 1fr\) 280px;/);
-  const media = HTML.match(/@media \(max-width: 860px\) \{\s*\.ouverture--preuve \{ grid-template-columns: 1fr; \}\s*\.ouverture--preuve \.ecran \{ order: 2; \}/);
-  assert.ok(media, 'bascule mobile absente');
+  assert.ok(!b.includes('<figure'), 'une figure est revenue dans le haut de site');
+  assert.ok(!b.includes('<img'), 'une image est revenue dans le haut de site');
+  assert.ok(!/\.ouverture--preuve \{ grid-template-columns/.test(HTML), 'colonne vide de l\'ancien écran');
 });
