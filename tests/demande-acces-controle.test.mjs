@@ -60,6 +60,9 @@ function construireContexte({ search = '', hash = '' } = {}) {
   const champs = ['prenom', 'nom', 'email', 'telephone', 'adresse', 'volume', 'quoi', 'provenance', 'provenance_qui', 'champ_b7'];
   const formElements = {};
   for (const nom of champs) formElements[nom] = { value: '' };
+  // La case des conditions (ticket 13526) : cochee par defaut dans ces tests, qui
+  // ne portent pas sur elle ; tests/13526-case-conditions.test.mjs la decoche.
+  formElements.conditions = { checked: true };
 
   const form = creerElement('form-acces');
   form.elements = formElements;
@@ -286,17 +289,19 @@ for (const email of ['', 'pas-une-adresse', 'a@b', '@x.fr', 'a b@c.fr']) {
   });
 }
 
-test('aucun champ autre que l\'e-mail n\'est required dans le HTML', () => {
+test('aucun champ autre que l\'e-mail et la case des conditions n\'est required dans le HTML', () => {
+  // La case (ticket 13526, demande de Laurent du 29/10/2026) est la seule obligation ajoutee.
   const requis = [...HTML.matchAll(/<(?:input|select|textarea)\b[^>]*\brequired\b[^>]*>/g)].map(m => m[0]);
-  assert.equal(requis.length, 1, requis.join('\n'));
+  assert.equal(requis.length, 2, requis.join('\n'));
   assert.match(requis[0], /name="email"/);
+  assert.match(requis[1], /name="conditions"/);
 });
 
 // ticket 10680 : trois champs au lieu de huit (audit 10512, validé par Laurent le 23/10/2026)
 test('ticket 10680 : le formulaire ne demande plus nom, téléphone ni adresse postale', () => {
   const noms = [...HTML.matchAll(/<(?:input|select|textarea)\b[^>]*\bname="([^"]+)"/g)].map(m => m[1]);
   // provenance_qui : la ligne « de la part de qui » du ticket 11859, jointe à provenance à l'envoi.
-  assert.deepEqual(noms.sort(), ['champ_b7', 'email', 'prenom', 'provenance', 'provenance_qui', 'quoi', 'volume'].sort());
+  assert.deepEqual(noms.sort(), ['champ_b7', 'conditions', 'email', 'prenom', 'provenance', 'provenance_qui', 'quoi', 'volume'].sort());
 });
 
 test('ticket 10680 : volume et provenance sont des pastilles de 44 px, pas des champs visibles', () => {

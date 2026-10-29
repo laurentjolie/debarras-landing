@@ -287,6 +287,12 @@
   .pastille:hover { border-color: var(--or); }
   .pastille[aria-pressed="true"] { border-color: var(--or-texte); color: var(--or-texte); background: var(--carte); font-weight: 600; }
   .pastille:focus-visible { outline: 2px solid var(--or-texte); outline-offset: 2px; }
+  /* La case des conditions (ticket 13526, 29/10/2026) : jamais cochee d'avance,
+     cible d'au moins 44 px sur toute la ligne. */
+  .champ-conditions label { display: flex; gap: 12px; align-items: flex-start; min-height: 44px; font-weight: 400; font-size: 0.9rem; cursor: pointer; }
+  .champ-conditions input[type="checkbox"] { width: 24px; height: 24px; min-width: 24px; margin-top: 2px; padding: 0; accent-color: var(--or); }
+  .champ-conditions a { color: var(--or-texte); text-decoration: underline; }
+  .champ-conditions.invalide label { color: var(--rouge); }
   .provenance-qui { display: grid; gap: 6px; margin-top: 10px; }
   .provenance-qui[hidden] { display: none; }
 
@@ -734,6 +740,22 @@
             </div>
           </div>
 
+          <!-- La case des conditions (ticket 13526, 29/10/2026, demande de Laurent) :
+               acceptation explicite, non cochée par défaut, deux liens vers les
+               textes en vigueur servis par l'application. Le serveur la
+               réclame aussi (lib/demande-acces.mjs) et note la version
+               acceptée : cette page n'annonce pas de version, c'est le serveur
+               qui sait laquelle est en vigueur. -->
+          <div class="champ champ-conditions" data-champ="conditions">
+            <label for="f-conditions">
+              <input id="f-conditions" name="conditions" type="checkbox" required>
+              <span>J'ai lu et j'accepte les
+                <a href="https://app.debarras.app/conditions" target="_blank" rel="noopener">conditions d'utilisation</a>
+                et la
+                <a href="https://app.debarras.app/confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>.</span>
+            </label>
+          </div>
+
           <!-- Le piège à robots : hors de l'écran, hors du parcours au clavier,
                et SANS LIBELLÉ LISIBLE. Il s'appelait « societe » avec un
                <label>Société</label> jusqu'au 23 septembre 2026 : les
@@ -994,6 +1016,13 @@
       ok = false;
     } else marquer('email', false);
 
+    // Ticket 13526 : sans la case, rien ne part (le serveur refuse aussi).
+    var caseConditions = form.elements['conditions'];
+    if (!(caseConditions && caseConditions.checked)) {
+      marquer('conditions', true, 'Coche la case pour envoyer ta demande.');
+      ok = false;
+    } else marquer('conditions', false);
+
     if (!ok) {
       var premier = form.querySelector('.champ.invalide input');
       if (premier) premier.focus();
@@ -1026,7 +1055,8 @@
       // marque « à vérifier » plutôt que de la jeter.
       duree_ms: Date.now() - OUVERT_A,
       canal: CANAL,
-      code: CODE
+      code: CODE,
+      conditions_acceptees: true
     });
   });
 
