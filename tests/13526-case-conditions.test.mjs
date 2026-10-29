@@ -20,7 +20,7 @@ test('13526.L1 la case existe, non cochee par defaut, avec les deux liens', () =
   assert.match(bloc, /href="https:\/\/app\.debarras\.app\/confidentialite"/);
 });
 
-function contexte(cochee) {
+async function contexte(cochee) {
   const el = (id) => ({ id, _c: new Set(), style: {}, textContent: '', listeners: {}, addEventListener(t, f) { (this.listeners[t] = this.listeners[t] || []).push(f); }, querySelector() { return null; }, appendChild() {}, scrollIntoView() {},
     classList: { add() {}, remove() {}, toggle(c, f) { el.marques = el.marques || {}; el.marques[id + c] = f; }, contains() { return false; } } });
   const els = new Map(['repli', 'repli-texte', 'repli-motif', 'merci', 'controle', 'controle-titre', 'btn-envoyer', 'btn-copier', 'bloc-provenance-qui', 'form-acces'].map(i => [i, el(i)]));
@@ -33,22 +33,29 @@ function contexte(cochee) {
   const sandbox = { document: { body: el('body'), getElementById: (i) => els.get(i) || null, createElement: () => el('tmp') },
     window: { location: { hash: '', search: '' }, addEventListener() {}, scrollTo() {}, AbortController, get fetch() { return sandbox.fetch; } },
     navigator: {}, console, setTimeout, clearTimeout, AbortController,
-    fetch(url, opts) { appels.push({ url, opts }); return Promise.resolve({ ok: true, status: 200, json: async () => ({ ok: true }) }); } };
+    fetch(url, opts) { if (/conditions-version/.test(url)) return Promise.resolve({ ok: true, json: async () => ({ version: '2' }) }); appels.push({ url, opts }); return Promise.resolve({ ok: true, status: 200, json: async () => ({ ok: true }) }); } };
   vm.runInContext(SCRIPT, vm.createContext(sandbox));
+  await new Promise(r => setImmediate(r));
   form.listeners.submit[0]({ preventDefault() {} });
   return { appels, marques };
 }
 
 test('13526.L2 sans la case, rien ne part et le champ est marque invalide', async () => {
-  const c = contexte(false);
+  const c = await contexte(false);
   await new Promise(r => setImmediate(r));
   assert.equal(c.appels.length, 0);
   assert.ok(c.marques.some(([n, f]) => n === 'conditions' && f === true));
 });
 
 test('13526.L3 avec la case, la demande part avec conditions_acceptees: true', async () => {
-  const c = contexte(true);
+  const c = await contexte(true);
   await new Promise(r => setImmediate(r));
   assert.equal(c.appels.length, 1);
   assert.equal(JSON.parse(c.appels[0].opts.body).conditions_acceptees, true);
+});
+
+test('13540.L1 la demande renvoie la version lue a l\'ouverture de la page', async () => {
+  const c = await contexte(true);
+  await new Promise(r => setImmediate(r));
+  assert.equal(JSON.parse(c.appels[0].opts.body).conditions_version, '2');
 });

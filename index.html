@@ -904,6 +904,19 @@
   // d'autre que dans `duree_ms`.
   var OUVERT_A = Date.now();
 
+  // Ticket 13540 (29/10/2026) : la version des conditions que cette page
+  // montre est lue a l'ouverture et renvoyee avec la case. Le serveur refuse
+  // une version qui n'est plus en vigueur : la personne n'accepte jamais un
+  // texte qu'elle n'a pas pu lire. Version nulle (rien en vigueur) : rien n'est
+  // envoye et le serveur n'exige rien.
+  var CONDITIONS_VERSION = null;
+  if (window.fetch) {
+    fetch('https://app.debarras.app/api/conditions-version')
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (j && j.version) CONDITIONS_VERSION = String(j.version); })
+      .catch(function () {});
+  }
+
   // LE CANAL D'ORIGINE (?c=linkedin, ?c=parrainage, ?c=tract...), lu une seule
   // fois à l'ouverture et porté jusqu'à l'envoi. Un lien sans ce paramètre
   // continue de marcher : le serveur retient alors « inconnu » lui-même, cette
@@ -1056,7 +1069,8 @@
       duree_ms: Date.now() - OUVERT_A,
       canal: CANAL,
       code: CODE,
-      conditions_acceptees: true
+      conditions_acceptees: true,
+      conditions_version: CONDITIONS_VERSION
     });
   });
 
