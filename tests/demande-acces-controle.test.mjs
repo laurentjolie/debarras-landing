@@ -95,6 +95,9 @@ function construireContexte({ search = '', hash = '' } = {}) {
     setTimeout, clearTimeout,
     AbortController: globalThis.AbortController,
     fetch(url, opts) {
+      // Ticket 13571 (30/10/2026) : la lecture de la version des conditions a
+      // l'ouverture (ticket 13540) n'est pas une soumission, elle ne se compte pas.
+      if (/conditions-version/.test(url)) return Promise.resolve({ ok: true, json: async () => ({ version: null }) });
       fetchAppels.push({ url, opts });
       return Promise.resolve().then(() => fetchImpl(url, opts));
     },
