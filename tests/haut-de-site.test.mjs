@@ -41,7 +41,7 @@ test('11198 : la preuve est chiffrée et datée', () => {
   assert.match(b, /<b>\d+ objets vendus depuis le 1er septembre<\/b>/);
   assert.match(b, /vendus en \d+ jours en médiane après leur validation/);
   assert.match(b, /commission 5 %, rien si ça ne part pas\./);
-  assert.match(b, /<small>Chiffres relevés le \d{1,2} (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre) 20\d\d\.<\/small>/);
+  assert.match(b, /<small>Chiffres relevés le \d{1,2}(?:er)? (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre) 20\d\d\.<\/small>/);
 });
 
 test('13149 : le haut de site ne montre plus d\'écran de reversement, ni sa colonne', () => {
