@@ -55,3 +55,10 @@ test('15070.5 le premier écran dit ce que c\'est, sans promesse d\'argent ; la 
   assert.doesNotMatch(HTML, /après leur validation/);
   assert.match(reecrire(HTML, { vendus: 30, mediane: 20, date: '2026-12-01' }), /vendus en 20 jours en médiane ·/);
 });
+
+// Le libellé du bouton de fin (un peu plus de 39 caractères) dépasse un écran de
+// téléphone tant que .bouton reste en nowrap : mesure du 07/11/2026, #merci à 394 px
+// de large pour un écran de 375 (run 15092). Sur l'écran de fin, le bouton passe à la ligne.
+test('15070.6 sur l\'écran de fin, le bouton peut passer à la ligne (pas de débordement à 375 px)', () => {
+  assert.match(HTML, /\.merci \.bouton \{[^}]*white-space: normal;[^}]*\}/);
+});

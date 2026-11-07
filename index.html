@@ -326,6 +326,9 @@
   .merci.visible { display: grid; }
   .merci h2 { font-size: 1.15rem; font-weight: 600; }
   .merci p { color: var(--texte-doux); font-size: 0.92rem; }
+  /* Le libellé « J'ai reçu mon courriel : ouvrir Débarras » ne tient pas sur une
+     ligne à 375 px : il passe à la ligne au lieu d'élargir la page (07/11/2026). */
+  .merci .bouton { white-space: normal; text-align: center; line-height: 1.3; }
   .merci .adresse {
     font-family: ui-monospace, monospace; color: var(--or-texte); word-break: break-all;
   }
