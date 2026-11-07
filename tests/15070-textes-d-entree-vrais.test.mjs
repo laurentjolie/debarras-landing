@@ -62,3 +62,23 @@ test('15070.5 le premier écran dit ce que c\'est, sans promesse d\'argent ; la 
 test('15070.6 sur l\'écran de fin, le bouton peut passer à la ligne (pas de débordement à 375 px)', () => {
   assert.match(HTML, /\.merci \.bouton \{[^}]*white-space: normal;[^}]*\}/);
 });
+
+// Audit 14289, changement 4 : l'étal montre des objets d'enfants réellement vendus,
+// au prix obtenu (data/debarras.sqlite, vue v_ventes, lue le 07/11/2026 : tente
+// 2ba946374ef12294 20 € Vinted, Duplo 0e789f04fcf3e6d3 18 € Vinted, garage Hape
+// 951b2f4db794b009 20 € leboncoin en main propre, Dracaufeu c22e028070d54dcd 360 €
+// leboncoin). Plus d'objet « En vente » ni de prix « annoncé » : la Dracaufeu
+// annoncée 414 € est partie à 360 €, la Monbento annoncée 12 € à 9 €.
+test('15070.7 l\'étal : quatre objets vendus, dont trois d\'enfants, au prix obtenu', () => {
+  const etal = entre('<div class="etal">', '<p class="etal-note">');
+  assert.equal(etal.split('<article class="objet">').length - 1, 4);
+  assert.equal(etal.split('pastille--vendu').length - 1, 4);
+  assert.doesNotMatch(etal, /En vente|Annoncée/);
+  assert.match(etal, /Tente de jeu enfant Moulin Roty[^<]*<\/h3>\s*<p class="prix mono">Partie à <b>20 €<\/b>/);
+  assert.match(etal, /LEGO Duplo 10973[^<]*<\/h3>\s*<p class="prix mono">Parti à <b>18 €<\/b>/);
+  assert.match(etal, /Garage parking en bois Hape[^<]*<\/h3>\s*<p class="prix mono">Parti à <b>20 €<\/b>/);
+  assert.match(etal, /Dracaufeu[^<]*<\/h3>\s*<p class="prix mono">Partie à <b>360 €<\/b>/);
+  assert.ok(etal.indexOf('Dracaufeu') > etal.indexOf('Garage parking'), 'la belle pièce en dernier');
+  const note = entre('<p class="etal-note">', '</p>').replace(/\s+/g, ' ');
+  assert.match(note, /Quatre objets parmi les 235 déjà passés par l'application\. Les prix sont ceux réellement obtenus, pas des exemples\./);
+});
