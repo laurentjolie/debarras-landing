@@ -51,7 +51,7 @@ test('11203 : réécrit les trois valeurs du vrai index.html, et rien d\'autre',
   assert.equal(neuf.length - HTML.length,
     '41'.length - lire(HTML).vendus.length + '17'.length - lire(HTML).mediane.length
     + '1er décembre 2026'.length - lire(HTML).date.length);
-  assert.match(neuf, /<b>41 objets vendus depuis le 1er septembre<\/b> · vendus en 17 jours en médiane après leur validation/);
+  assert.match(neuf, /<b>41 objets vendus depuis le 1er septembre<\/b> · vendus en 17 jours en médiane ·/);
 });
 
 test('11203 : refuse une mesure vide ou une page où un motif manque', () => {

@@ -30,16 +30,17 @@ test('11198 : accroche et bouton d\'accès, dans cet ordre, dans la colonne text
   const b = bloc();
   const texte = b.slice(b.indexOf('<div class="texte">'));
   const h1 = texte.indexOf('<h1 class="titrage">Tes affaires se vendent <em>pendant que tu fais autre chose.</em></h1>');
-  const bouton = texte.indexOf('<a class="bouton bouton--large" href="#acces">Demander un accès</a>');
+  // Ticket 15070 (07/11/2026, audit 14289 changement 1) : on commence, on ne demande plus d'accès.
+  const bouton = texte.indexOf('<a class="bouton bouton--large" href="#acces">Commencer avec une photo</a>');
   const preuve = texte.indexOf('<p class="preuve">');
   assert.ok(h1 >= 0 && bouton > h1 && preuve > bouton, 'titre, puis bouton, puis preuve');
-  assert.match(texte, /Une photo suffit pour commencer\./);
+  assert.match(texte, /Ton code arrive par courriel\./);
 });
 
 test('11198 : la preuve est chiffrée et datée', () => {
   const b = bloc();
   assert.match(b, /<b>\d+ objets vendus depuis le 1er septembre<\/b>/);
-  assert.match(b, /vendus en \d+ jours en médiane après leur validation/);
+  assert.match(b, /vendus en \d+ jours en médiane ·/); // « après leur validation » retiré, ticket 15070
   assert.match(b, /commission 5 %, rien si ça ne part pas\./);
   assert.match(b, /<small>Chiffres relevés le \d{1,2}(?:er)? (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre) 20\d\d\.<\/small>/);
 });

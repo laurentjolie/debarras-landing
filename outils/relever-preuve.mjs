@@ -50,7 +50,8 @@ export function dateEnLettres(iso) {
 
 const MOTIFS = {
   vendus: /(<b>)\d+( objets vendus depuis le 1er septembre<\/b>)/,
-  mediane: /(vendus en )\d+( jours en médiane après leur validation)/,
+  // Ticket 15070 (07/11/2026, audit 14289 changement 2) : « après leur validation » retiré de la page.
+  mediane: /(vendus en )\d+( jours en médiane)/,
   date: /(<small>Chiffres relevés le )[^<]+(\.<\/small>)/,
 };
 

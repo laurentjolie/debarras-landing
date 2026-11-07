@@ -91,6 +91,8 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 16px; padding: 20px 0 0;
   }
+  /* Ticket 15070 (audit 14289, changement 5) : sur téléphone, « Commencer » reste visible en défilant. */
+  @media (max-width: 640px) { .barre { position: sticky; top: 0; z-index: 10; background: var(--fond); padding-bottom: 10px; } }
   .nav-droite { display: flex; align-items: center; gap: 18px; }
   .lien-nav { color: var(--texte); font-weight: 600; font-size: .92rem; text-decoration: none; }
   .lien-nav:hover { color: var(--or-texte); }
@@ -397,24 +399,24 @@
     <span class="nav-droite">
       <a class="lien-nav" href="equipe.html">L'équipe</a>
       <a class="lien-nav lien-compte" href="https://app.debarras.app">J'ai déjà un compte</a>
-      <a class="bouton" href="#acces">Demander un accès</a>
+      <a class="bouton" href="#acces">Commencer</a>
     </span>
   </nav>
 
   <header class="ouverture ouverture--preuve">
     <div class="texte">
-      <span class="etiquette">Envoi postal uniquement</span>
+      <span class="etiquette">Une application faite par deux parents · en bêta</span>
       <h1 class="titrage">Tes affaires se vendent <em>pendant que tu fais autre chose.</em></h1>
       <p class="accroche">
-        Tu photographies l'objet. On écrit l'annonce, on fixe le prix, on publie sur
-        leboncoin, Vinted et eBay, et on répond aux acheteurs. Quand c'est vendu, tu
-        déposes le colis en point relais, et tu touches l'argent de la vente.
+        Débarras est une application. Tu photographies l'objet avec ton téléphone ; on
+        écrit l'annonce, on fixe le prix avec toi, on publie sur leboncoin, Vinted et eBay
+        et on répond aux acheteurs. Quand c'est vendu, tu déposes le colis en point relais.
       </p>
       <div class="actions">
-        <a class="bouton bouton--large" href="#acces">Demander un accès</a>
-        <span class="note">Une photo suffit pour commencer.</span>
+        <a class="bouton bouton--large" href="#acces">Commencer avec une photo</a>
+        <span class="note">Ton code arrive par courriel.</span>
       </div>
-      <p class="preuve"><b>21 objets vendus depuis le 1er septembre</b> · vendus en 23 jours en médiane après leur validation · commission 5 %, rien si ça ne part pas.
+      <p class="preuve"><b>21 objets vendus depuis le 1er septembre</b> · vendus en 23 jours en médiane · commission 5 %, rien si ça ne part pas.
         <small>Chiffres relevés le 1er novembre 2026.</small></p>
     </div>
   </header>
@@ -522,6 +524,11 @@
            vente.</p>
         <span class="duree">Le délai dépend de l'objet</span>
       </article>
+    </div>
+    <!-- Ticket 15070 (audit 14289, changement 5) : un bouton au milieu de la page. -->
+    <div class="actions" style="margin-top:28px">
+      <a class="bouton bouton--large" href="#acces">Commencer avec une photo</a>
+      <span class="note">Ton code arrive par courriel.</span>
     </div>
   </section>
 
@@ -652,10 +659,10 @@
     <div class="fin-contenu">
       <h2 class="titrage">Dis-nous ce que tu as à vendre.</h2>
       <p>
-        Écris-nous ce que tu as chez toi : on crée ton accès et on te l'envoie par
-        courriel. Envie de savoir qui s'occupe de tes objets ? <a href="equipe.html">Voici l'équipe</a>.
+        Une adresse mail suffit : on t'envoie ton code par courriel, et tu déposes ta
+        première photo dans la foulée. Envie de savoir qui s'occupe de tes objets ? <a href="equipe.html">Voici l'équipe</a>.
       </p>
-      <a class="bouton bouton--large" href="#acces">Demander un accès</a>
+      <a class="bouton bouton--large" href="#acces">Commencer avec une photo</a>
     </div>
     <div class="pied">
       <span class="mono">débarras.app</span>
@@ -675,10 +682,11 @@
       <a class="retour" href="#">← Revenir à la page</a>
 
       <div class="intro">
-        <span class="etiquette">Demande d'accès</span>
+        <span class="etiquette">Inscription</span>
         <h1 class="titrage">Dis-nous ce que tu as à vendre.</h1>
         <p>
-          Deux minutes. On crée ton accès et on te l'envoie par courriel.
+          Une adresse mail suffit. On t'envoie ton code par courriel, et tu déposes ta
+          première photo dans la foulée.
         </p>
       </div>
 
@@ -782,9 +790,10 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="bouton bouton--large" id="btn-envoyer">Envoyer ma demande</button>
+          <button type="submit" class="bouton bouton--large" id="btn-envoyer">Recevoir mon code</button>
           <span class="form-note">
-            Ta demande part directement chez nous. On te répond sous 24 h.
+            Ton code arrive dans quelques minutes à cette adresse (demain matin à partir de
+            8 h si tu écris la nuit). Regarde aussi les indésirables.
           </span>
         </div>
       </form>
@@ -792,11 +801,18 @@
       <p class="form-compte"><a class="lien-compte" href="https://app.debarras.app">J'ai déjà un compte</a></p>
 
       <div class="merci" id="merci">
-        <h2>C'est envoyé.</h2>
+        <!-- Ticket 15070 (07/11/2026) : le délai mesuré (4,3 min en médiane, audit
+             15015) et la nuit tant que la règle 9 s'applique au courriel d'accès. -->
+        <h2>C'est parti.</h2>
         <p>
-          On te répond sous 24 h avec ton code d'accès, à l'adresse mail que tu viens
-          de donner. Si rien n'arrive, regarde dans les indésirables, puis écris à
-          <span class="adresse">contact@debarras.app</span>.
+          Ton code arrive dans quelques minutes à l'adresse que tu viens de donner
+          (demain matin à partir de 8 h si tu écris la nuit). Regarde aussi les
+          indésirables. Pendant ce temps, choisis ton premier objet et prends-le en
+          photo à la lumière du jour, seul sur une surface unie.
+        </p>
+        <p><a class="bouton bouton--large" href="https://app.debarras.app">J'ai reçu mon courriel : ouvrir Débarras</a></p>
+        <p>
+          Si rien n'arrive, écris à <span class="adresse">contact@debarras.app</span>.
         </p>
       </div>
 
