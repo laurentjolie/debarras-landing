@@ -300,6 +300,7 @@
   .champ-conditions input[type="checkbox"] { width: 24px; height: 24px; min-width: 24px; margin-top: 2px; padding: 0; accent-color: var(--or); }
   .champ-conditions a { color: var(--or-texte); text-decoration: underline; }
   .champ-conditions.invalide label { color: var(--rouge); }
+  .champ-conditions .aide { display: block; margin-top: 4px; }
   .provenance-qui { display: grid; gap: 6px; margin-top: 10px; }
   .provenance-qui[hidden] { display: none; }
 
@@ -778,6 +779,19 @@
             </label>
           </div>
 
+          <!-- La demande expresse (CGU 1.1 art. 9, ticket 15457, 09/11/2026) :
+               case distincte de celle des conditions, FACULTATIVE, jamais
+               précochée, jamais required. Cochée, le POST envoie
+               execution_anticipee: true et le serveur date la demande ;
+               sinon la publication automatique attend la fin des 14 jours. -->
+          <div class="champ champ-conditions" data-champ="execution_anticipee">
+            <label for="f-execution-anticipee">
+              <input id="f-execution-anticipee" name="execution_anticipee" type="checkbox">
+              <span>Je demande que mes objets puissent être publiés avant la fin de mon délai de rétractation
+                <span class="aide">Sans cette case, la publication automatique attend la fin des 14 jours ; « Publier maintenant » reste possible.</span></span>
+            </label>
+          </div>
+
           <!-- Le piège à robots : hors de l'écran, hors du parcours au clavier,
                et SANS LIBELLÉ LISIBLE. Il s'appelait « societe » avec un
                <label>Société</label> jusqu'au 23 septembre 2026 : les
@@ -1091,7 +1105,8 @@
     // personne a écrit.
     repliTexte.textContent = 'À : ' + DESTINATAIRE + '\nObjet : ' + sujet + '\n\n' + corps;
 
-    envoyer({
+    var caseExpresse = form.elements['execution_anticipee'];
+    var corpsDemande = {
       prenom: prenom, email: email, volume: volume, quoi: quoi, provenance: provenance,
       champ_b7: valeur('champ_b7'),      // le piège : vide chez un humain
       // La deuxième condition, indépendante du piège : personne ne tape sept
@@ -1103,7 +1118,10 @@
       code: CODE,
       conditions_acceptees: true,
       conditions_version: CONDITIONS_VERSION
-    });
+    };
+    // Le booléen seul, et seulement si la case est cochée : absente, elle n'envoie rien.
+    if (caseExpresse && caseExpresse.checked) corpsDemande.execution_anticipee = true;
+    envoyer(corpsDemande);
   });
 
   // ── Les trois états : pendant, réussi, raté ───────────────────────────────
