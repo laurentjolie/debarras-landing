@@ -33,7 +33,7 @@ async function contexte(cochee) {
   const sandbox = { document: { body: el('body'), getElementById: (i) => els.get(i) || null, createElement: () => el('tmp') },
     window: { location: { hash: '', search: '' }, addEventListener() {}, scrollTo() {}, AbortController, get fetch() { return sandbox.fetch; } },
     navigator: {}, console, setTimeout, clearTimeout, AbortController,
-    fetch(url, opts) { if (/conditions-version/.test(url)) return Promise.resolve({ ok: true, json: async () => ({ version: '2' }) }); appels.push({ url, opts }); return Promise.resolve({ ok: true, status: 200, json: async () => ({ ok: true }) }); } };
+    fetch(url, opts) { if (/conditions-version/.test(url)) return Promise.resolve({ ok: true, json: async () => ({ version: '2' }) }); if (!/visite-landing/.test(url)) appels.push({ url, opts }); return Promise.resolve({ ok: true, status: 200, json: async () => ({ ok: true }) }); } };
   vm.runInContext(SCRIPT, vm.createContext(sandbox));
   await new Promise(r => setImmediate(r));
   form.listeners.submit[0]({ preventDefault() {} });

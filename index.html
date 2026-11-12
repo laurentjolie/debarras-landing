@@ -975,9 +975,9 @@
   // LE CODE DE GROUPE (?d=issy1, ?d=...), plus fin que CANAL : quel groupe
   // Facebook precis (ou toute autre source marquee d'un lien) amene des
   // visiteurs. Meme lecture, meme defaut cote serveur quand il manque. Ce
-  // qu'il ajoute : un ping silencieux a l'ouverture de la page, UNIQUEMENT
-  // quand ce parametre est present (sinon rien n'est a attribuer, et rien
-  // n'est envoye) — aucun cookie, aucune IP gardee (voir le serveur), aucun
+  // qu'il ajoute : l'attribution du ping silencieux a l'ouverture de la page
+  // (sans ce parametre le ping part quand meme, avec la source du referent :
+  // voir corpsDeMesure, ticket 14263, 12/11/2026) — aucun cookie, aucune IP gardee (voir le serveur), aucun
   // bandeau, aucun traqueur tiers. Un echec de ce ping est ignore en silence :
   // il ne doit jamais se voir ni empecher la suite de la page.
   function codeDepuisUrl() {

@@ -71,6 +71,9 @@ function construireContexte({ search = '', hash = '' } = {}) {
   const body = creerElement('body');
 
   const fetchAppels = [];
+  // Ticket 15923 (12/11/2026) : le ping de visite part pour toute visite (ticket 14263),
+  // il se compte a part de la soumission du formulaire.
+  const pings = [];
   let fetchImpl = async () => { throw new Error('fetch non configuré pour ce test'); };
 
   const document_ = {
@@ -98,7 +101,7 @@ function construireContexte({ search = '', hash = '' } = {}) {
       // Ticket 13571 (30/10/2026) : la lecture de la version des conditions a
       // l'ouverture (ticket 13540) n'est pas une soumission, elle ne se compte pas.
       if (/conditions-version/.test(url)) return Promise.resolve({ ok: true, json: async () => ({ version: null }) });
-      fetchAppels.push({ url, opts });
+      (/visite-landing/.test(url) ? pings : fetchAppels).push({ url, opts });
       return Promise.resolve().then(() => fetchImpl(url, opts));
     },
   };
@@ -106,7 +109,7 @@ function construireContexte({ search = '', hash = '' } = {}) {
   vm.runInContext(SCRIPT, ctx, { filename: 'index.html#script' });
 
   return {
-    form, elements, fetchAppels,
+    form, elements, fetchAppels, pings,
     definirReponse(impl) { fetchImpl = impl; },
     // Simule un clic sur un lien d'ancre : l'ancre change, puis hashchange.
     changerAncre(h) {
@@ -219,14 +222,16 @@ test('un lien avec ?d=issy1 déclenche, dès l\'ouverture, un ping silencieux ve
   const c = construireContexte({ search: '?d=issy1' });
   // Le ping part à la construction du script (ouverture de la page), avant
   // toute soumission du formulaire.
-  assert.equal(c.fetchAppels.length, 1);
-  assert.equal(c.fetchAppels[0].url, 'https://app.debarras.app/api/visite-landing');
-  assert.deepEqual(JSON.parse(c.fetchAppels[0].opts.body), { code: 'issy1' });
+  assert.equal(c.pings.length, 1);
+  assert.equal(c.pings[0].url, 'https://app.debarras.app/api/visite-landing');
+  assert.deepEqual(JSON.parse(c.pings[0].opts.body), { code: 'issy1' });
 });
 
-test('un lien sans ?d= ne déclenche aucun ping : rien à attribuer, rien n\'est envoyé', async () => {
+test('un lien sans ?d= déclenche le ping avec code sans-code et la source du référent (ticket 14263)', async () => {
   const c = construireContexte({ search: '' });
-  assert.equal(c.fetchAppels.length, 0);
+  assert.equal(c.pings.length, 1);
+  assert.deepEqual(JSON.parse(c.pings[0].opts.body), { code: 'sans-code', source: 'direct' });
+  assert.equal(c.fetchAppels.length, 0, 'aucune soumission');
 });
 
 test('le code ?d=... est recopié dans la demande d\'accès à l\'envoi du formulaire', async () => {
@@ -234,9 +239,10 @@ test('le code ?d=... est recopié dans la demande d\'accès à l\'envoi du formu
   c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
   await c.soumettre({ ...DONNEES_VALIDES, champ_b7: '' });
 
-  // Deux fetch : le ping de visite à l'ouverture, puis l'envoi du formulaire.
-  assert.equal(c.fetchAppels.length, 2);
-  const appelFormulaire = c.fetchAppels[1];
+  // Le ping de visite à l'ouverture est à part (c.pings) ; ici, l'envoi du formulaire.
+  assert.equal(c.pings.length, 1);
+  assert.equal(c.fetchAppels.length, 1);
+  const appelFormulaire = c.fetchAppels[0];
   assert.equal(appelFormulaire.url, 'https://app.debarras.app/api/demande-acces');
   const corpsEnvoye = JSON.parse(appelFormulaire.opts.body);
   assert.equal(corpsEnvoye.code, 'issy1');
@@ -247,7 +253,7 @@ test('sans ?d=..., la demande d\'accès porte un code vide, jamais une valeur de
   c.definirReponse(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
   await c.soumettre({ ...DONNEES_VALIDES, champ_b7: '' });
 
-  assert.equal(c.fetchAppels.length, 1, 'aucun ping sans code, un seul fetch, celui du formulaire');
+  assert.equal(c.fetchAppels.length, 1, 'un seul fetch hors ping, celui du formulaire');
   const corpsEnvoye = JSON.parse(c.fetchAppels[0].opts.body);
   assert.equal(corpsEnvoye.code, '');
 });
@@ -304,7 +310,8 @@ test('aucun champ autre que l\'e-mail et la case des conditions n\'est required 
 test('ticket 10680 : le formulaire ne demande plus nom, téléphone ni adresse postale', () => {
   const noms = [...HTML.matchAll(/<(?:input|select|textarea)\b[^>]*\bname="([^"]+)"/g)].map(m => m[1]);
   // provenance_qui : la ligne « de la part de qui » du ticket 11859, jointe à provenance à l'envoi.
-  assert.deepEqual(noms.sort(), ['champ_b7', 'conditions', 'email', 'prenom', 'provenance', 'provenance_qui', 'quoi', 'volume'].sort());
+  // execution_anticipee : la case facultative de demande expresse du ticket 15457 (CGU 1.1 art. 9).
+  assert.deepEqual(noms.sort(), ['champ_b7', 'conditions', 'email', 'execution_anticipee', 'prenom', 'provenance', 'provenance_qui', 'quoi', 'volume'].sort());
 });
 
 test('ticket 10680 : volume et provenance sont des pastilles de 44 px, pas des champs visibles', () => {
@@ -394,7 +401,7 @@ test('ticket 11859 : la ligne « qui » est dans le HTML, cachée au départ, 60
 // le passage sur #acces, une fois par chargement, et seulement avec un code.
 
 function appelsFormulaire(c) {
-  return c.fetchAppels
+  return c.pings
     .filter((a) => a.url === 'https://app.debarras.app/api/visite-landing')
     .map((a) => JSON.parse(a.opts.body))
     .filter((corps) => corps.etape === 'formulaire');
@@ -405,7 +412,7 @@ test('ticket 12418 : avec ?d=issy1, ouvrir #acces envoie {code, etape: "formulai
   assert.equal(appelsFormulaire(c).length, 0, 'rien avant l\'ouverture du formulaire');
   c.changerAncre('#acces');
   assert.deepEqual(appelsFormulaire(c), [{ code: 'issy1', etape: 'formulaire' }]);
-  const appel = c.fetchAppels.find((a) => JSON.parse(a.opts.body).etape === 'formulaire');
+  const appel = c.pings.find((a) => JSON.parse(a.opts.body).etape === 'formulaire');
   assert.equal(appel.opts.method, 'POST');
   assert.equal(appel.opts.credentials, undefined, 'aucun cookie demandé');
 });
@@ -421,12 +428,13 @@ test('ticket 12418 : une seule fois par chargement, même après des allers-reto
 test('ticket 12418 : une page ouverte directement sur #acces le signale aussi, une fois', () => {
   const c = construireContexte({ search: '?d=issy1', hash: '#acces' });
   assert.deepEqual(appelsFormulaire(c), [{ code: 'issy1', etape: 'formulaire' }]);
-  assert.equal(c.fetchAppels.length, 2, 'le ping de visite et celui du formulaire, rien d\'autre');
+  assert.equal(c.pings.length, 2, 'le ping de visite et celui du formulaire, rien d\'autre');
 });
 
-test('ticket 12418 : sans ?d=, ouvrir le formulaire n\'envoie rien', () => {
+test('ticket 12418 : sans ?d=, ouvrir le formulaire envoie sans-code et la source (ticket 14263)', () => {
   const c = construireContexte({ search: '' });
   c.changerAncre('#acces');
+  assert.deepEqual(appelsFormulaire(c), [{ code: 'sans-code', source: 'direct', etape: 'formulaire' }]);
   assert.equal(c.fetchAppels.length, 0);
 });
 
