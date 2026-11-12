@@ -914,23 +914,19 @@
   }
 
   // L'OUVERTURE DU FORMULAIRE (ticket 12418), meme compteur que le ping de
-  // visite plus bas et memes garanties : seulement avec un code ?d=, une seule
-  // fois par chargement, aucun cookie, aucun identifiant, echec silencieux.
+  // visite plus bas et memes garanties : une seule fois par chargement, aucun
+  // cookie, aucun identifiant, echec silencieux. Depuis le ticket 14263
+  // (12/11/2026) elle part aussi sans code, avec la source (voir plus bas).
   // Le code est relu ici (et non CODE) : router() tourne une premiere fois
   // avant que CODE soit pose, quand la page s'ouvre directement sur #acces.
   var FORMULAIRE_SIGNALE = false;
   function signalerFormulaire() {
     if (FORMULAIRE_SIGNALE) return;
-    var code = codeDepuisUrl();
-    if (!code || !window.fetch) return;
+    if (!window.fetch) return;
     FORMULAIRE_SIGNALE = true;
-    try {
-      fetch(API_VISITES, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code, etape: 'formulaire' })
-      }).catch(function () {});
-    } catch (e) {}
+    var corps = corpsDeMesure();
+    corps.etape = 'formulaire';
+    envoyerMesure(corps);
   }
   window.addEventListener('hashchange', router);
   router();
@@ -991,13 +987,54 @@
     } catch (e) { return ''; }
   }
   var CODE = codeDepuisUrl();
-  if (CODE && window.fetch) {
-    fetch(API_VISITES, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: CODE })
-    }).catch(function () {});
+
+  // LA SOURCE D'UNE VISITE SANS CODE (ticket 14263, 12/11/2026, decision de
+  // Laurent : toute visite est comptee, sans cookie, sans IP, sans
+  // identifiant). Elle est deduite du seul NOM DE DOMAINE du referent
+  // (document.referrer) et rangee dans une liste fermee ; l'adresse complete
+  // du referent n'est ni lue plus loin ni envoyee. Referent vide : « direct ».
+  // La table vit dans la fonction : router() l'appelle avant ce point du script.
+  function sourceDuReferent() {
+    try {
+      var SOURCES_PAR_DOMAINE = [
+      ['facebook', /(^|\.)(facebook\.com|fb\.com|fb\.me|messenger\.com|l\.facebook\.com)$/],
+      ['instagram', /(^|\.)instagram\.com$/],
+      ['google', /(^|\.)google\.[a-z.]+$/],
+      ['moteur', /(^|\.)(bing\.com|duckduckgo\.com|qwant\.com|ecosia\.org|yahoo\.com|search\.yahoo\.com|startpage\.com)$/],
+      ['leboncoin', /(^|\.)leboncoin\.fr$/],
+      ['vinted', /(^|\.)vinted\.[a-z.]+$/],
+      ['whatsapp', /(^|\.)(whatsapp\.com|wa\.me)$/],
+      ['mail', /(^|\.)(mail\.google\.com|outlook\.live\.com|outlook\.office\.com|mail\.yahoo\.com|mail\.proton\.me|webmail\.[a-z0-9.-]+|mail\.orange\.fr|mail\.free\.fr|mail\.ovh\.net)$/]
+    ];
+      var ref = document.referrer;
+      if (!ref) return 'direct';
+      var h = new URL(ref).hostname.toLowerCase();
+      if (!h || h === window.location.hostname) return 'direct';
+      // mail.google.com avant google : le webmail n'est pas une recherche.
+      for (var i = SOURCES_PAR_DOMAINE.length - 1; i >= 0; i--) {
+        if (SOURCES_PAR_DOMAINE[i][1].test(h)) return SOURCES_PAR_DOMAINE[i][0];
+      }
+      return 'autre';
+    } catch (e) { return 'autre'; }
   }
+  // Avec code : {code}. Sans code : {code: 'sans-code', source}.
+  function corpsDeMesure() {
+    var code = codeDepuisUrl();
+    return code ? { code: code } : { code: 'sans-code', source: sourceDuReferent() };
+  }
+  function envoyerMesure(corps) {
+    try {
+      fetch(API_VISITES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(corps)
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  // Un ping a l'ouverture de la page, pour toute visite (avec ou sans code).
+  // Un echec est ignore en silence : il ne doit jamais se voir ni empecher la
+  // suite de la page.
+  if (window.fetch) envoyerMesure(corpsDeMesure());
 
   function valeur(nom) {
     var el = form.elements[nom];
